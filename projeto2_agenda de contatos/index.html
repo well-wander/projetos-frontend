@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Contatos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <h1>Agenda de Contatos</h1>
+
+        <!-- Card de cadastro -->
+        <section class="card">
+            <h2>Cadastrar contato</h2>
+
+            <form id="form-contato">
+
+                <div class="campo">
+                    <label for="nome">
+                        Nome <span class="obrigatorio">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nome"
+                        required
+                    >
+
+                    <span id="erro-nome" class="erro">
+                        Preencha o nome completo.
+                    </span>
+                </div>
+
+                <div class="campo">
+                    <label for="telefone">
+                        Telefone <span class="obrigatorio">*</span>
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="telefone"
+                        placeholder="(99) 99999-9999"
+                        maxlength="15"
+                        required
+                    >
+
+                    <span id="erro-telefone" class="erro">
+                        Cadastre o telefone completo.
+                    </span>
+                </div>
+
+                <button type="submit">
+                    Cadastrar
+                </button>
+
+            </form>
+        </section>
+
+        <!-- Card de contatos -->
+        <section class="card">
+            <h2>Contatos cadastrados</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                    </tr>
+                </thead>
+
+                <tbody id="lista-contatos">
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
