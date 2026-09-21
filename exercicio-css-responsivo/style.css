@@ -1,0 +1,183 @@
+/* Reset */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    background-color: #fff;
+}
+
+img {
+    display: block;
+    width: 100%;
+}
+
+/* Container */
+
+.container {
+    width: 100%;
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+/* Cabeçalho */
+
+.cabecalho {
+    background-color: #1f5fae;
+    color: #fff;
+    padding: 20px 0;
+}
+
+.cabecalho .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cabecalho h1 {
+    font-size: 28px;
+}
+
+.cabecalho ul {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+}
+
+.cabecalho a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.cabecalho a:hover {
+    text-decoration: underline;
+}
+
+/* Sobre a loja */
+
+.sobre {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding: 40px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.sobre-imagem img {
+    height: 100%;
+    min-height: 300px;
+    object-fit: cover;
+}
+
+.sobre-conteudo h2,
+.produtos > h2 {
+    color: #1f5fae;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.sobre-conteudo p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+/* Produtos */
+
+.produtos {
+    padding: 40px 0;
+}
+
+.lista-produtos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+.produto {
+    display: flex;
+    flex-direction: column;
+}
+
+.produto img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    margin-bottom: 16px;
+}
+
+.produto h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.produto p {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+.produto button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: #1f5fae;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.produto button:hover {
+    background-color: #164b8c;
+}
+
+/* Tablet */
+
+@media screen and (max-width: 1023px) {
+
+    .lista-produtos {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+/* Mobile */
+
+@media screen and (max-width: 640px) {
+
+    .container {
+        padding: 0 20px;
+    }
+
+    .cabecalho .container {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .cabecalho ul {
+        gap: 16px;
+    }
+
+    .sobre {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .sobre-imagem img {
+        min-height: 250px;
+    }
+
+    .lista-produtos {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+}
