@@ -1,0 +1,175 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.tickets {
+    padding: 72px 0 104px;
+
+    @include paper;
+
+    text-align: center;
+
+    &__castle {
+        width: 100%;
+        max-width: 760px;
+
+        margin: 0 auto 8px;
+
+        @include misprint($ink);
+    }
+
+    &__title {
+        font-family: $font-gothic;
+        font-weight: 900;
+        font-size: clamp(52px, 7vw, 92px);
+        line-height: 1;
+    }
+
+    &__subtitle {
+        max-width: 520px;
+
+        margin: 8px auto 56px;
+
+        font-size: 21px;
+        font-style: italic;
+    }
+
+    &__list {
+        display: grid;
+
+        // minmax(0, 1fr): as colunas podem encolher abaixo do tamanho do conteúdo
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+
+        align-items: center;
+    }
+
+    @include mobile {
+        padding: 48px 0 72px;
+
+        &__subtitle {
+            margin-bottom: 40px;
+
+            font-size: 19px;
+        }
+
+        &__list {
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+    }
+}
+
+.ticket {
+    position: relative;
+
+    padding: 36px 28px 32px;
+
+    @include poster-frame(8px);
+
+    &__stars {
+        display: block;
+
+        margin-bottom: 4px;
+
+        font-size: 18px;
+
+        letter-spacing: 6px;
+    }
+
+    &__name {
+        font-family: $font-gothic;
+        font-weight: 900;
+        font-size: 44px;
+        line-height: 1;
+    }
+
+    &__price {
+        margin: 6px 0 18px;
+
+        font-family: $font-caps;
+        font-size: 34px;
+    }
+
+    &__perks {
+        margin-bottom: 24px;
+    }
+
+    &__perk {
+        padding: 9px 0;
+
+        border-top: 1px solid currentColor;
+
+        font-size: 18px;
+
+        // :last-child — a última linha também ganha borda embaixo, fechando a lista
+        &:last-child {
+            border-bottom: 1px solid currentColor;
+        }
+    }
+
+    &__button {
+        display: block;
+
+        width: 100%;
+
+        &--reserved {
+            border-style: dashed;
+
+            background-color: $paper-dark;
+            color: $ink;
+        }
+    }
+
+    &__badge {
+        position: absolute;
+        top: -16px;
+        left: 50%;
+
+        transform: translateX(-50%);
+
+        padding: 4px 14px;
+
+        border: 2px solid $ink;
+
+        background-color: $paper;
+        color: $ink;
+
+        font-family: $font-caps;
+        font-size: 15px;
+
+        letter-spacing: 2px;
+        white-space: nowrap;
+    }
+
+    // convite em destaque: tinta verde cheia
+    &--featured {
+        padding: 48px 28px 40px;
+
+        @include ink;
+
+        border-color: $ink-dark;
+        outline-color: rgba($paper, 0.6);
+    }
+
+    @include tablet {
+        padding: 32px 16px 28px;
+
+        &--featured {
+            padding: 44px 16px 36px;
+        }
+
+        &__name {
+            font-size: 36px;
+        }
+
+        &__price {
+            font-size: 28px;
+        }
+
+        &__button {
+            padding: 12px 8px;
+
+            letter-spacing: 1px;
+        }
+    }
+}

@@ -1,0 +1,78 @@
+@use "../variables" as *;
+@use "../mixins" as *;
+
+.button {
+    display: inline-block;
+
+    padding: 14px 26px;
+
+    border: 2px solid $ink;
+
+    font-family: $font-caps;
+    font-size: 19px;
+
+    letter-spacing: 3px;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+        transform: translate(-2px, -2px);
+
+        // sombra "carimbada", sem desfoque
+        box-shadow: 4px 4px 0 currentColor;
+    }
+
+    &:focus-visible {
+        outline: 2px dashed currentColor;
+        outline-offset: 4px;
+    }
+
+    // tinta verde cheia
+    &--primary {
+        background-color: $ink;
+        color: $paper;
+
+        &:hover,
+        &:focus-visible {
+            box-shadow: 4px 4px 0 $ink-dark;
+        }
+    }
+
+    // só o contorno
+    &--secondary {
+        background-color: transparent;
+        color: $ink;
+    }
+
+    // para usar sobre fundo verde
+    &--light {
+        border-color: $paper;
+
+        background-color: $paper;
+        color: $ink;
+
+        &:hover,
+        &:focus-visible {
+            box-shadow: 4px 4px 0 $ink-dark;
+        }
+    }
+
+    @include mobile {
+        display: block;
+
+        width: 100%;
+
+        // em telas bem estreitas o texto pode quebrar em vez de vazar
+        white-space: normal;
+        letter-spacing: 2px;
+    }
+}

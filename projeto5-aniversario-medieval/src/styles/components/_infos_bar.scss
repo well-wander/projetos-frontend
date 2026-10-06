@@ -1,0 +1,53 @@
+@use "../variables" as *;
+@use "../mixins" as *;
+
+.infos-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+
+    padding-top: 20px;
+
+    border-top: 2px solid $ink;
+
+    text-align: left;
+
+    &__infos {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    &__item {
+        font-size: 17px;
+        line-height: 1.3;
+    }
+
+    &__title {
+        display: block;
+
+        font-family: $font-gothic;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 1.1;
+    }
+
+    @include tablet {
+        &__infos {
+            gap: 12px;
+        }
+    }
+
+    @include mobile {
+        &__infos {
+            display: block;
+
+            text-align: center;
+        }
+
+        &__item {
+            margin-bottom: 14px;
+        }
+    }
+}

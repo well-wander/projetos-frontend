@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>A Festa de Well · 28 de junho</title>
+
+    <meta
+        name="description"
+        content="Por decreto real: a festa medieval de aniversário do Well. Banquete, torneio, magia e hidromel no dia 28 de junho."
+    >
+
+    <!-- Open Graph: prévia ao compartilhar o link -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:url" content="https://festa-de-well.vercel.app/">
+    <meta property="og:title" content="A Festa de Well · 28 de junho">
+    <meta property="og:description" content="Por decreto real: banquete, torneio, magia e hidromel para celebrar o aniversário do Well.">
+    <meta property="og:image" content="https://festa-de-well.vercel.app/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Pôster verde e creme com o nome Well em letra gótica e a gravura de um cavaleiro enfrentando um dragão">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="A Festa de Well · 28 de junho">
+    <meta name="twitter:description" content="Por decreto real: banquete, torneio, magia e hidromel para celebrar o aniversário do Well.">
+    <meta name="twitter:image" content="https://festa-de-well.vercel.app/og-image.jpg">
+
+    <!-- Favicon: W gótico em pixel art -->
+    <link rel="icon" href="./images/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./images/favicon/favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="./images/favicon/apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700;900&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="./styles/main.scss">
+
+    <script type="module" src="./scripts/main.js"></script>
+</head>
+
+<body>
+
+    <!-- Grão de impressão sobre a página toda (não bloqueia cliques) -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <!-- Todas as seções viram cards empilhados (ver components/_stack_card.scss) -->
+    <div class="page-stack">
+
+    <!-- =========================================
+         HERO (pôster)
+    ========================================== -->
+
+    <header class="hero stack-card">
+        <div class="container">
+
+            <div class="hero__poster">
+
+                <h1 class="hero__title">
+                    <span class="hero__title-small">A festa de</span>
+                    Well
+                </h1>
+
+                <div class="hero__art">
+                    <p class="hero__eyebrow">Por decreto real · Anno Domini <span class="js-ano-festa">2027</span></p>
+                    <img
+                        class="hero__image"
+                        src="./images/cavaleiro.webp"
+                        alt="Gravura de um cavaleiro de elmo erguendo a espada sobre um cavalo empinado, enfrentando um dragão entre rosas"
+                        width="1000"
+                        height="1250"
+                        fetchpriority="high"
+                    >
+                </div>
+
+            </div>
+
+            <div class="hero__footer">
+
+                <img class="hero__capital" src="./images/capitular-w.webp" alt="" aria-hidden="true" width="480" height="480">
+
+                <div class="hero__info">
+
+                    <p class="hero__text">
+                        Banquete, torneio, magia e hidromel para celebrar
+                        o aniversário do rei. A festa começa em:
+                    </p>
+
+                    <div class="countdown" id="contador" role="timer" aria-live="off">
+                        <div class="countdown__item">
+                            <span class="countdown__number" data-unidade="dias">--</span>
+                            <span class="countdown__label">dias</span>
+                        </div>
+                        <div class="countdown__item">
+                            <span class="countdown__number" data-unidade="horas">--</span>
+                            <span class="countdown__label">horas</span>
+                        </div>
+                        <div class="countdown__item">
+                            <span class="countdown__number" data-unidade="minutos">--</span>
+                            <span class="countdown__label">min</span>
+                        </div>
+                        <div class="countdown__item">
+                            <span class="countdown__number" data-unidade="segundos">--</span>
+                            <span class="countdown__label">seg</span>
+                        </div>
+                    </div>
+
+                    <p class="countdown__message" id="contador-mensagem" hidden>
+                        Os portões estão abertos: a festa começou!
+                    </p>
+
+                    <div class="infos-bar">
+                        <ul class="infos-bar__infos">
+                            <li class="infos-bar__item">
+                                <b class="infos-bar__title">Onde</b>
+                                Taverna do Dragão Dourado, São Paulo
+                            </li>
+                            <li class="infos-bar__item">
+                                <b class="infos-bar__title">Tributo</b>
+                                A partir de R$ 60
+                            </li>
+                            <li class="infos-bar__item">
+                                <b class="infos-bar__title">Quando</b>
+                                28 de junho, às 20h
+                            </li>
+                        </ul>
+
+                        <a href="#convites" class="button button--primary">
+                            Garanta seu convite
+                        </a>
+                    </div>
+
+                </div>
+
+                <img class="hero__capital hero__capital--mirror" src="./images/capitular-w.webp" alt="" aria-hidden="true" width="480" height="480">
+
+            </div>
+
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- =========================================
+             ATRAÇÕES
+        ========================================== -->
+
+        <section class="stack-card event event--paper" aria-labelledby="banquete-titulo">
+            <div class="container">
+                <div class="event__details">
+                    <span class="event__number">I</span>
+                    <span class="event__hour">20h · Abertura dos portões</span>
+                    <h2 class="event__title" id="banquete-titulo">O Banquete Real</h2>
+                    <p class="event__description">
+                        Mesas longas de madeira, pernil assado, pães quentes, queijos e frutas
+                        servidas em travessas de estanho. Cada convidado recebe seu cálice
+                        para o primeiro brinde em honra ao aniversariante.
+                    </p>
+                </div>
+                <img class="event__image" src="./images/banquete.webp" alt="Gravura de uma mesa de banquete medieval com javali assado, pães, uvas, cálices e velas" width="880" height="880" loading="lazy">
+            </div>
+        </section>
+
+        <section class="stack-card event event--ink event--image-left" aria-labelledby="torneio-titulo">
+            <div class="container">
+                <div class="event__details">
+                    <span class="event__number">II</span>
+                    <span class="event__hour">21h30 · Pátio do castelo</span>
+                    <h2 class="event__title" id="torneio-titulo">O Grande Torneio</h2>
+                    <p class="event__description">
+                        Cavaleiros e damas disputam o título de campeão do reino: arco e flecha,
+                        cabo de guerra e duelos de espadas de espuma. O vencedor ganha um lugar
+                        à direita do rei e o direito de escolher a próxima canção.
+                    </p>
+                </div>
+                <img class="event__image" src="./images/torneio.webp" alt="Gravura de dois cavaleiros em armadura se enfrentando com lanças num torneio" width="880" height="880" loading="lazy">
+            </div>
+        </section>
+
+        <section class="stack-card event event--paper" aria-labelledby="magia-titulo">
+            <div class="container">
+                <div class="event__details">
+                    <span class="event__number">III</span>
+                    <span class="event__hour">23h · Torre do mago</span>
+                    <h2 class="event__title" id="magia-titulo">A Hora da Magia</h2>
+                    <p class="event__description">
+                        À meia-luz, a bola de cristal revela o futuro de cada convidado.
+                        Poções, truques de ilusionismo e o acender das velas para o
+                        parabéns mais encantado que o reino já viu.
+                    </p>
+                </div>
+                <img class="event__image" src="./images/magia.webp" alt="Gravura de um velho mago de chapéu pontudo erguendo uma bola de cristal" width="880" height="880" loading="lazy">
+            </div>
+        </section>
+
+        <section class="stack-card event event--ink event--image-left" aria-labelledby="taverna-titulo">
+            <div class="container">
+                <div class="event__details">
+                    <span class="event__number">IV</span>
+                    <span class="event__hour">Até o amanhecer · Taverna</span>
+                    <h2 class="event__title" id="taverna-titulo">Bardos e Hidromel</h2>
+                    <p class="event__description">
+                        Os bardos tomam o palco, as canecas transbordam de hidromel e a pista
+                        vira um baile de taverna. Trajes medievais são bem-vindos,
+                        mas a capa é opcional.
+                    </p>
+                </div>
+                <img class="event__image" src="./images/taverna.webp" alt="Gravura de um bardo tocando alaúde sentado num barril, com canecas de hidromel na mesa" width="880" height="880" loading="lazy">
+            </div>
+        </section>
+
+
+        <!-- =========================================
+             CONVITES
+        ========================================== -->
+
+        <section class="stack-card tickets" id="convites" aria-labelledby="convites-titulo">
+            <div class="container">
+
+                <img class="tickets__castle" src="./images/castelo.webp" alt="Gravura de um castelo com torres e bandeiras no alto de uma colina, sob a lua" width="1400" height="615" loading="lazy">
+
+                <h2 class="tickets__title" id="convites-titulo" data-aos="fade-up">Escolha seu convite</h2>
+                <p class="tickets__subtitle" data-aos="fade-up">
+                    Todo convidado é bem-vindo ao salão. O tributo define seu lugar à mesa.
+                </p>
+
+                <div class="tickets__list">
+
+                    <article class="ticket" data-aos="fade-up">
+                        <span class="ticket__stars" aria-hidden="true">✦</span>
+                        <h3 class="ticket__name">Aldeão</h3>
+                        <p class="ticket__price">R$ 60</p>
+                        <ul class="ticket__perks">
+                            <li class="ticket__perk">Entrada no salão</li>
+                            <li class="ticket__perk">Banquete real</li>
+                            <li class="ticket__perk">Um cálice de hidromel</li>
+                        </ul>
+                        <button type="button" class="button button--secondary ticket__button js-reservar">Quero este</button>
+                    </article>
+
+                    <article class="ticket ticket--featured" data-aos="fade-up" data-aos-delay="100">
+                        <span class="ticket__badge">Mais escolhido</span>
+                        <span class="ticket__stars" aria-hidden="true">✦ ✦</span>
+                        <h3 class="ticket__name">Cavaleiro</h3>
+                        <p class="ticket__price">R$ 120</p>
+                        <ul class="ticket__perks">
+                            <li class="ticket__perk">Tudo do Aldeão</li>
+                            <li class="ticket__perk">Vaga no Grande Torneio</li>
+                            <li class="ticket__perk">Hidromel à vontade</li>
+                        </ul>
+                        <button type="button" class="button button--light ticket__button js-reservar">Quero este</button>
+                    </article>
+
+                    <article class="ticket" data-aos="fade-up" data-aos-delay="200">
+                        <span class="ticket__stars" aria-hidden="true">✦ ✦ ✦</span>
+                        <h3 class="ticket__name">Realeza</h3>
+                        <p class="ticket__price">R$ 200</p>
+                        <ul class="ticket__perks">
+                            <li class="ticket__perk">Tudo do Cavaleiro</li>
+                            <li class="ticket__perk">Lugar à mesa do rei</li>
+                            <li class="ticket__perk">Leitura na bola de cristal</li>
+                        </ul>
+                        <button type="button" class="button button--secondary ticket__button js-reservar">Quero este</button>
+                    </article>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         RODAPÉ
+    ========================================== -->
+
+    <footer class="stack-card footer" data-stack-recuo="nao">
+        <div class="container">
+            <div class="footer__motto">
+                <p class="footer__latin">Vivat Rex Well!</p>
+                <p class="footer__translation">Vida longa ao rei Well!</p>
+            </div>
+            <p class="footer__credit">
+                28 de junho · Evento fictício criado para o curso de Engenheiro Front-End da EBAC.
+            </p>
+        </div>
+    </footer>
+
+    </div>
+
+</body>
+
+</html>

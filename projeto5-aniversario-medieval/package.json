@@ -1,0 +1,23 @@
+{
+  "name": "aniversario-medieval",
+  "version": "1.0.0",
+  "description": "Landing page de evento: a festa medieval de aniversário do Well (28 de junho)",
+  "private": true,
+  "source": "src/index.html",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html --dist-dir dist --no-source-maps && node -e \"require('fs').copyFileSync('static/og-image.jpg', 'dist/og-image.jpg')\""
+  },
+  "author": "Well",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.16.4",
+    "parcel": "^2.16.4"
+  },
+  "dependencies": {
+    "aos": "^2.3.4"
+  },
+  "overrides": {
+    "@swc/core": "1.15.47"
+  }
+}

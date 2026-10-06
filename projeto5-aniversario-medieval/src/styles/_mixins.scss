@@ -1,0 +1,62 @@
+@use "sass:color";
+@use "variables" as *;
+
+// =========================================
+// RESPONSIVIDADE
+// =========================================
+
+@mixin tablet {
+    @media (max-width: $tablet) {
+        @content;
+    }
+}
+
+@mixin mobile {
+    @media (max-width: $mobile) {
+        @content;
+    }
+}
+
+
+// =========================================
+// SUPERFÍCIES
+// =========================================
+
+// papel envelhecido: textura + gradiente (mais claro em cima, amarelado embaixo)
+@mixin paper {
+    background-color: $paper;
+    background-image:
+        url("../images/papel.webp"),
+        linear-gradient(180deg, $paper 0%, color.mix($paper, $paper-dark, 60%) 100%);
+    background-size: 512px 512px, auto;
+
+    color: $ink;
+}
+
+// área impressa em verde: tinta gasta (falhas cor de papel) + gradiente
+@mixin ink {
+    background-color: $ink;
+    background-image:
+        url("../images/tinta-gasta.webp"),
+        linear-gradient(160deg, $ink-light 0%, $ink 50%, $ink-dark 100%);
+    background-size: 512px 512px, auto;
+
+    color: $paper;
+}
+
+
+// =========================================
+// DETALHES DE IMPRESSÃO
+// =========================================
+
+// moldura de pôster: fio grosso + fio fino por dentro
+@mixin poster-frame($gap: 8px) {
+    border: 3px solid currentColor;
+    outline: 1px solid currentColor;
+    outline-offset: -#{$gap + 3px};
+}
+
+// "registro" desalinhado da risografia: uma segunda passada de tinta deslocada
+@mixin misprint($color, $x: 3px, $y: 2px) {
+    filter: drop-shadow($x $y 0 rgba($color, 0.28));
+}

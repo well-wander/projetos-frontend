@@ -1,0 +1,216 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// Hero em formato de pôster: painel verde com o nome gótico na vertical
+// e a gravura do cavaleiro; embaixo, as capitulares e as informações.
+
+.hero {
+    padding: 40px 0 72px;
+
+    &__poster {
+        display: flex;
+        align-items: stretch;
+        gap: 36px;
+
+        padding: 40px 48px 40px 32px;
+
+        @include ink;
+        @include poster-frame(10px);
+
+        border-color: $ink-dark;
+        outline-color: rgba($paper, 0.55);
+    }
+
+    // título na vertical, lido de baixo para cima (como na referência)
+    &__title {
+        display: flex;
+        // na escrita vertical, "column" coloca as duas linhas lado a lado
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+
+        padding-left: 28px;
+
+        border-left: 2px solid rgba($paper, 0.6);
+
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+
+        font-family: $font-gothic;
+        font-weight: 900;
+        font-size: clamp(150px, 17vw, 230px);
+        line-height: 0.82;
+
+        letter-spacing: 6px;
+        text-transform: uppercase;
+    }
+
+    &__title-small {
+        font-size: 0.3em;
+        font-weight: 700;
+
+        letter-spacing: 8px;
+
+        opacity: 0.9;
+    }
+
+    &__art {
+        flex: 1;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+
+        min-width: 0;
+    }
+
+    &__eyebrow {
+        width: 100%;
+
+        padding-bottom: 12px;
+
+        border-bottom: 1px solid rgba($paper, 0.5);
+
+        font-family: $font-caps;
+        font-size: 18px;
+
+        letter-spacing: 5px;
+        text-align: center;
+    }
+
+    &__image {
+        width: auto;
+        max-width: 100%;
+
+        // o pôster inteiro cabe na tela do computador
+        max-height: min(620px, 66vh);
+
+        @include misprint($paper-light);
+    }
+
+    &__footer {
+        display: grid;
+        grid-template-columns: 210px minmax(0, 1fr) 210px;
+        gap: 24px;
+        align-items: stretch;
+
+        margin-top: 24px;
+    }
+
+    &__capital {
+        width: 100%;
+        height: 100%;
+        max-height: 260px;
+
+        padding: 18px;
+
+        border: 2px solid $ink;
+
+        object-fit: contain;
+
+        &--mirror {
+            transform: scaleX(-1);
+        }
+    }
+
+    &__info {
+        padding: 28px 32px;
+
+        border: 2px solid $ink;
+
+        text-align: center;
+    }
+
+    &__text {
+        max-width: 520px;
+
+        margin: 0 auto 20px;
+
+        font-size: 20px;
+        font-style: italic;
+    }
+
+    @include tablet {
+        &__poster {
+            padding: 32px 32px 32px 24px;
+        }
+
+        &__title {
+            font-size: clamp(110px, 15vw, 150px);
+        }
+
+        &__footer {
+            grid-template-columns: 140px minmax(0, 1fr) 140px;
+            gap: 16px;
+        }
+
+        &__capital {
+            padding: 10px;
+        }
+
+        &__info {
+            padding: 24px 20px;
+        }
+    }
+
+    // no celular o pôster empilha: título na horizontal em cima da gravura
+    @include mobile {
+        padding: 16px 0 48px;
+
+        &__poster {
+            flex-direction: column;
+            gap: 16px;
+
+            padding: 28px 22px;
+        }
+
+        &__title {
+            flex-direction: column;
+            gap: 0;
+
+            padding: 0 0 16px;
+
+            border-left: none;
+            border-bottom: 2px solid rgba($paper, 0.6);
+
+            writing-mode: horizontal-tb;
+            transform: none;
+
+            font-size: clamp(64px, 27vw, 128px);
+            line-height: 0.85;
+
+            text-align: center;
+        }
+
+        &__title-small {
+            font-size: 0.3em;
+            letter-spacing: 6px;
+        }
+
+        &__eyebrow {
+            font-size: 14px;
+            letter-spacing: 3px;
+        }
+
+        &__footer {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 16px;
+
+            margin-top: 16px;
+        }
+
+        &__capital {
+            display: none;
+        }
+
+        &__info {
+            padding: 24px 16px;
+        }
+
+        &__text {
+            font-size: 18px;
+        }
+    }
+}

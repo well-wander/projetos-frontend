@@ -1,0 +1,82 @@
+@use "../variables" as *;
+@use "../mixins" as *;
+
+// quadros com borda, como os "45" do pôster de referência
+.countdown {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    margin-bottom: 24px;
+
+    &__item {
+        width: 104px;
+
+        padding: 10px 6px 8px;
+
+        border: 2px solid $ink;
+        outline: 1px solid $ink;
+        outline-offset: -6px;
+    }
+
+    &__number {
+        display: block;
+
+        font-family: $font-gothic;
+        font-weight: 900;
+        font-size: 52px;
+        line-height: 1;
+
+        // números estáveis, sem "pular" de largura a cada segundo
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__label {
+        display: block;
+
+        font-family: $font-caps;
+        font-size: 15px;
+
+        letter-spacing: 3px;
+    }
+
+    &__message {
+        margin-bottom: 24px;
+
+        font-family: $font-gothic;
+        font-weight: 700;
+        font-size: 34px;
+    }
+
+    @include tablet {
+        gap: 8px;
+
+        &__item {
+            width: 84px;
+        }
+
+        &__number {
+            font-size: 42px;
+        }
+    }
+
+    @include mobile {
+        gap: 6px;
+
+        &__item {
+            flex: 1;
+
+            width: auto;
+            max-width: 78px;
+        }
+
+        &__number {
+            font-size: 34px;
+        }
+
+        &__label {
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+    }
+}

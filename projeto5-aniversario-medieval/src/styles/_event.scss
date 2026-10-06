@@ -1,0 +1,151 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// As atrações alternam as duas tintas: creme com gravura verde,
+// verde com gravura creme.
+
+.event {
+    // a posição (sticky) vem do componente stack-card
+    padding: 96px 0;
+
+    // as animações AOS começam fora da tela; a seção corta o excesso
+    overflow: hidden;
+
+
+    &--paper {
+        @include paper;
+
+        .event__image {
+            @include misprint($ink);
+        }
+    }
+
+    &--ink {
+        @include ink;
+
+        .event__image {
+            @include misprint($paper-light);
+        }
+    }
+
+    .container {
+        display: flex;
+        align-items: center;
+        gap: 56px;
+
+        padding: 48px 56px;
+
+        @include poster-frame(8px);
+    }
+
+    &--image-left .container {
+        flex-direction: row-reverse;
+    }
+
+    &__details {
+        flex: 1;
+
+        min-width: 0;
+    }
+
+    // número romano numa caixa, como o "45" do pôster
+    &__number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 64px;
+        height: 64px;
+
+        margin-bottom: 18px;
+        padding: 0 10px;
+
+        border: 2px solid currentColor;
+        outline: 1px solid currentColor;
+        outline-offset: -6px;
+
+        // números romanos em serifa: na fonte gótica, "II" vira quase um "U"
+        font-family: $font-caps;
+        font-size: 30px;
+        line-height: 1;
+    }
+
+    &__hour {
+        display: block;
+
+        margin-bottom: 6px;
+
+        font-family: $font-caps;
+        font-size: 18px;
+
+        letter-spacing: 4px;
+    }
+
+    &__title {
+        margin-bottom: 18px;
+
+        font-family: $font-gothic;
+        font-weight: 900;
+        font-size: clamp(48px, 6vw, 82px);
+        line-height: 0.95;
+    }
+
+    &__description {
+        max-width: 520px;
+
+        font-size: 21px;
+        line-height: 1.55;
+    }
+
+    &__image {
+        flex-shrink: 0;
+
+        width: 46%;
+        max-width: 460px;
+    }
+
+    @include tablet {
+        padding: 80px 0;
+
+        .container {
+            gap: 32px;
+
+            padding: 36px 32px;
+        }
+    }
+
+    @include mobile {
+        padding: 56px 0;
+
+        .container,
+        &--image-left .container {
+            flex-direction: column-reverse;
+            gap: 24px;
+
+            padding: 28px 20px 32px;
+
+            text-align: center;
+        }
+
+        &__image {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        &__number {
+            min-width: 52px;
+            height: 52px;
+
+            font-size: 24px;
+        }
+
+        &__hour {
+            font-size: 15px;
+            letter-spacing: 2px;
+        }
+
+        &__description {
+            font-size: 19px;
+        }
+    }
+}

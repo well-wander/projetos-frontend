@@ -1,0 +1,80 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+@use "hero";
+@use "components/countdown";
+@use "components/infos_bar";
+@use "components/buttons";
+@use "components/grain";
+@use "components/stack_card";
+@use "event";
+@use "tickets";
+@use "footer";
+
+
+// =========================================
+// RESET E BASE
+// =========================================
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    // nada pode gerar rolagem lateral
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @include paper;
+
+    font-family: $font-body;
+    font-size: 19px;
+    line-height: 1.5;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    color: inherit;
+}
+
+button {
+    font: inherit;
+}
+
+
+// =========================================
+// CONTAINER (mesmo esquema da aula, na ordem certa)
+// =========================================
+
+.container {
+    width: 100%;
+    max-width: 1120px;
+
+    margin: 0 auto;
+
+    @include tablet {
+        max-width: 92%;
+    }
+
+    @include mobile {
+        max-width: calc(100% - 32px);
+    }
+}

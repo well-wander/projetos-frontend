@@ -1,0 +1,81 @@
+@use "../variables" as *;
+@use "../mixins" as *;
+
+// =========================================
+// SEÇÕES EM CARDS EMPILHADOS
+// Cada seção para no topo (sticky) e a próxima sobe por cima dela.
+// O JavaScript calcula:
+//   --stick-top → onde o card para (seções altas só param depois de mostrar tudo)
+//   --cover     → quanto o card já foi coberto pelo próximo (0 a 1)
+// Como tudo depende só da posição da rolagem, o efeito também acontece ao contrário.
+// =========================================
+
+.stack-card {
+    position: sticky;
+    top: var(--stick-top, 0px);
+
+    border-radius: 28px 28px 0 0;
+
+    box-shadow: 0 -12px 32px rgba($ink-dark, 0.22);
+
+    // ao ser coberto, o card recua: encolhe um pouco em direção ao topo
+    transform: scale(calc(1 - var(--cover, 0) * 0.06));
+    transform-origin: 50% 0;
+
+    will-change: transform;
+
+    // sombra que escurece o card enquanto o próximo passa por cima
+    &::after {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+
+        border-radius: inherit;
+
+        background-color: $ink-dark;
+
+        opacity: calc(var(--cover, 0) * 0.45);
+
+        pointer-events: none;
+    }
+
+    // os cards depois do primeiro sobem um pouco por cima do anterior,
+    // deixando ver os cantos arredondados
+    &:not(.hero) {
+        margin-top: -28px;
+    }
+
+    @include mobile {
+        border-radius: 18px 18px 0 0;
+
+        &:not(.hero) {
+            margin-top: -18px;
+        }
+    }
+
+    // quem prefere menos movimento vê as seções empilhadas normalmente
+    @media (prefers-reduced-motion: reduce) {
+        position: relative;
+        top: auto;
+
+        transform: none;
+
+        &::after {
+            display: none;
+        }
+    }
+}
+
+// todos os cards ficam dentro do mesmo container: assim eles terminam juntos
+// no fim da página e nenhum card preso aparece por cima de outro
+.page-stack {
+    position: relative;
+}
+
+// o primeiro card (hero) começa colado no topo da página, sem cantos
+.hero.stack-card {
+    border-radius: 0;
+    box-shadow: none;
+}
