@@ -1,0 +1,6 @@
+node_modules
+img-original
+img-otimizado
+package.json
+package-lock.json
+otimizar-imagens.mjs

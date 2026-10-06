@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Clube da Luta</title>
+
+    <meta
+        name="description"
+        content="Landing page inspirada no filme Clube da Luta. Conheça as regras, encontre um clube e descubra quem você é de verdade."
+    >
+
+    <!-- Favicon (sabonete rosa em pixel art) -->
+    <link rel="icon" href="img/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="img/favicon/favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="img/favicon/apple-touch-icon.png">
+
+    <!-- Open Graph: prévia ao compartilhar o link -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:url" content="https://clube-da-luta-delta.vercel.app/">
+    <meta property="og:title" content="Clube da Luta">
+    <meta property="og:description" content="Você só descobre quem é de verdade quando luta. Conheça as regras e encontre um clube.">
+    <meta property="og:image" content="https://clube-da-luta-delta.vercel.app/img/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="545">
+    <meta property="og:image:alt" content="Hero do site Clube da Luta: punho enfaixado e ensanguentado ao lado da frase Você só descobre quem é de verdade quando luta">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Clube da Luta">
+    <meta name="twitter:description" content="Você só descobre quem é de verdade quando luta. Conheça as regras e encontre um clube.">
+    <meta name="twitter:image" content="https://clube-da-luta-delta.vercel.app/img/og-image.jpg">
+
+    <link rel="preload" href="fonts/anton.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="js/main.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Camada de grão: cobre tudo, mas não bloqueia cliques nem scroll -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+
+    <header class="header">
+
+        <a href="#" class="logo header__logo">
+            CLUBE <span class="logo__accent">DA LUTA</span>
+        </a>
+
+        <nav class="nav">
+            <a href="#regras" class="nav__link">Regras</a>
+            <a href="#encontros" class="nav__link">Encontros</a>
+            <a href="#sobre" class="nav__link">Quem somos?</a>
+            <a href="#contato" class="nav__link">Contato</a>
+        </nav>
+
+        <a href="#encontros" class="button button--primary header__button">
+            Quero lutar
+        </a>
+
+    </header>
+
+
+    <main>
+
+        <!-- =========================================
+             HERO
+        ========================================== -->
+
+        <section class="hero">
+
+            <img class="decor decor--hero-splash" src="img/splash.webp" alt="" aria-hidden="true" width="660" height="440">
+            <img class="decor decor--hero-x" src="img/x-mark.webp" alt="" aria-hidden="true" width="300" height="200">
+
+            <div class="hero__image">
+                <img class="hero__photo"
+                    src="img/hero.webp"
+                    alt="Punho enfaixado e ensanguentado"
+                    width="1672"
+                    height="941"
+                    fetchpriority="high"
+                >
+            </div>
+
+            <div class="hero__content">
+
+                <p class="hero__eyebrow">
+                    TRABALHO. CONSUMO. DÍVIDAS.<br>
+                    SONO. REPETIÇÃO.
+                    <strong class="hero__eyebrow-accent">ISSO NÃO É VIDA.</strong>
+                </p>
+
+                <h1 class="hero__title">
+                    Você só<br class="hero__break"> descobre<br>
+                    <span class="hero__accent">quem é de<br class="hero__break"> verdade</span><br>
+                    quando luta.
+                </h1>
+
+                <a href="#encontros" class="button button--primary hero__button">
+                    Encontre um clube
+                    <span class="button__arrow" aria-hidden="true">→</span>
+                </a>
+
+            </div>
+
+            <div class="hero__note">
+                LIBERDADE.<br>
+                DOR.<br>
+                IRMANDADE.
+            </div>
+
+            <span class="hero__mark" aria-hidden="true">✕</span>
+
+        </section>
+
+
+        <!-- =========================================
+             REGRAS
+        ========================================== -->
+
+        <section class="section section--paper rules" id="regras">
+
+            <div class="section-title">
+
+                <span class="section-title__number">01</span>
+
+                <h2 class="section-title__heading">
+                    AS REGRAS
+                    <span class="section-title__accent">DO CLUBE</span>
+                </h2>
+
+            </div>
+
+            <div class="rules__content">
+
+                <ol class="rules__list">
+
+                    <li class="rules__item">
+                        <span class="rules__number">01</span>
+                        Você não fala sobre o Clube da Luta.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">02</span>
+                        Você não fala sobre o Clube da Luta.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">03</span>
+                        Se alguém pedir para parar, a luta termina.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">04</span>
+                        Apenas dois caras por luta.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">05</span>
+                        Uma luta de cada vez.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">06</span>
+                        Sem camisas. Sem sapatos.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">07</span>
+                        As lutas continuam pelo tempo necessário.
+                    </li>
+
+                    <li class="rules__item">
+                        <span class="rules__number">08</span>
+                        Se é sua primeira noite, você luta.
+                    </li>
+
+                </ol>
+
+                <div class="rules__image">
+
+                    <div class="rules__image-label">
+                        PRIMEIRA NOITE?
+                    </div>
+
+                    <img class="rules__image-photo"
+                        src="img/shhh.webp"
+                        alt="Homem fazendo gesto de silêncio"
+                        width="1536"
+                        height="1024"
+                        loading="lazy"
+                    >
+
+                    <div class="rules__stamp">
+                        NÃO FALE.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <img class="decor decor--rules-tape" src="img/tape.webp" alt="" aria-hidden="true" width="420" height="140" loading="lazy">
+            <img class="decor decor--rules-note" src="img/note.webp" alt="" aria-hidden="true" width="440" height="293" loading="lazy">
+
+        </section>
+
+
+        <!-- =========================================
+             ENCONTRE UM CLUBE
+        ========================================== -->
+
+        <section class="find" id="encontros">
+
+            <div class="find__text">
+
+                <div class="section-title find__header">
+
+                    <span class="section-title__number">02</span>
+
+                    <h2 class="section-title__heading">
+                        ENCONTRE<br>
+                        <span class="section-title__accent">UM CLUBE</span>
+                    </h2>
+
+                </div>
+
+                <p class="find__description">
+                    O Clube está em todo lugar.
+                    Mas você precisa saber onde olhar.
+                </p>
+
+                <p class="find__description find__description--typewriter">
+                    Deixe uma referência.
+                    Nós encontramos você.
+                </p>
+
+                <form class="find__form">
+
+                    <label class="find__label" for="location">
+                        Ponto de referência
+                    </label>
+
+                    <div class="find__form-line">
+
+                        <input
+                            type="text"
+                            id="location"
+                            name="location"
+                            class="find__input"
+                            placeholder="Digite um local..."
+                        >
+
+                        <button class="find__submit" type="submit" aria-label="Enviar">
+                            →
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <div class="find__map">
+
+                <img class="find__map-image"
+                    src="img/mapa.webp"
+                    alt="Mapa clandestino com marcações do Clube da Luta"
+                    width="1672"
+                    height="941"
+                    loading="lazy"
+                >
+
+                <div class="find__map-note">
+                    OS CLUBES<br>
+                    NÃO TÊM ENDEREÇO.<br>
+                    ELES TE ENCONTRAM.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             POR QUE LUTAMOS
+        ========================================== -->
+
+        <section class="manifesto" id="sobre">
+
+            <div class="manifesto__image">
+
+                <img class="manifesto__photo"
+                    src="img/manifesto.webp"
+                    alt="Lutador com as mãos enfaixadas sentado, cabisbaixo, em um porão"
+                    width="1536"
+                    height="1024"
+                    loading="lazy"
+                >
+
+                <span class="manifesto__caption">
+                    SEU CORPO É A ÚNICA
+                    COISA QUE REALMENTE
+                    É SUA.
+                </span>
+
+            </div>
+
+
+            <img class="decor decor--manifesto-tape" src="img/tape.webp" alt="" aria-hidden="true" width="420" height="140" loading="lazy">
+
+            <div class="manifesto__content">
+
+                <div class="section-title manifesto__header">
+
+                    <span class="section-title__number">03</span>
+
+                    <h2 class="section-title__heading">
+                        POR QUE
+                        <span class="section-title__accent">LUTAMOS?</span>
+                    </h2>
+
+                </div>
+
+                <p class="manifesto__lead">
+                    Porque alguma coisa está errada.
+                </p>
+
+                <p class="manifesto__text">
+                    Passamos a vida comprando coisas que
+                    não precisamos, trabalhando para pessoas
+                    que não conhecemos e tentando parecer
+                    satisfeitos.
+                </p>
+
+                <p class="manifesto__text">
+                    Aqui não existe status.
+                    Não existe currículo.
+                    Não existe cargo.
+                </p>
+
+                <p class="manifesto__highlight">
+                    Existe você.
+                </p>
+
+                <div class="manifesto__handwritten">
+                    A DOR TE COLOCA
+                    NO PRESENTE.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             QUEM SOMOS
+        ========================================== -->
+
+        <section class="section section--paper who">
+
+            <img class="decor decor--who-x" src="img/x-mark.webp" alt="" aria-hidden="true" width="300" height="200" loading="lazy">
+
+            <div class="section-title">
+
+                <span class="section-title__number">04</span>
+
+                <h2 class="section-title__heading">
+                    QUEM
+                    <span class="section-title__accent">SOMOS?</span>
+                </h2>
+
+            </div>
+
+
+            <div class="who__grid">
+
+                <div class="who__card who__card--dark">
+
+                    <span class="who__card-number">01</span>
+
+                    <h3 class="who__card-title">
+                        NINGUÉM
+                    </h3>
+
+                    <p class="who__card-text">
+                        Não precisamos saber seu nome.
+                        Não precisamos saber de onde você veio.
+                    </p>
+
+                </div>
+
+
+                <div class="who__card who__card--image">
+
+                    <img class="who__photo"
+                        src="img/quem-somos.webp"
+                        alt="Homens de costas reunidos em um porão escuro iluminado por luz rosa"
+                        width="1536"
+                        height="1024"
+                        loading="lazy"
+                    >
+
+                    <span class="who__caption">
+                        SEM NOMES.<br>
+                        SEM HISTÓRICO.
+                    </span>
+
+                </div>
+
+
+                <div class="who__card who__card--light">
+
+                    <span class="who__card-number who__card-number--light">02</span>
+
+                    <h3 class="who__card-title">
+                        TODO MUNDO
+                    </h3>
+
+                    <p class="who__card-text">
+                        Empregados. Desempregados.
+                        Insatisfeitos. Cansados.
+                    </p>
+
+                </div>
+
+
+                <div class="who__card who__card--pink">
+
+                    <span class="who__card-number who__card-number--pink">03</span>
+
+                    <h3 class="who__card-title">
+                        VOCÊ
+                    </h3>
+
+                    <p class="who__card-text">
+                        O resto não importa.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             PRÓXIMOS ENCONTROS
+        ========================================== -->
+
+        <section class="meetings" id="contato">
+
+            <div class="section-title">
+
+                <span class="section-title__number">05</span>
+
+                <h2 class="section-title__heading">
+                    PRÓXIMOS
+                    <span class="section-title__accent">ENCONTROS</span>
+                </h2>
+
+            </div>
+
+
+            <div class="meetings__list">
+
+                <article class="meetings__item">
+
+                    <div class="meetings__date">
+                        <strong class="meetings__date-number">XX</strong>
+                        <small class="meetings__date-label">XX</small>
+                    </div>
+
+                    <div class="meetings__info">
+                        <span class="meetings__index">01</span>
+                        <h3 class="meetings__item-title">LOCAL DESCONHECIDO</h3>
+                        <p class="meetings__description">Quando você estiver pronto.</p>
+                    </div>
+
+                    <div class="meetings__status">
+                        CONFIDENCIAL
+                    </div>
+
+                </article>
+
+
+                <article class="meetings__item">
+
+                    <div class="meetings__date">
+                        <strong class="meetings__date-number">XX</strong>
+                        <small class="meetings__date-label">XX</small>
+                    </div>
+
+                    <div class="meetings__info">
+                        <span class="meetings__index">02</span>
+                        <h3 class="meetings__item-title">VOCÊ SABE ONDE</h3>
+                        <p class="meetings__description">Procure a luz acesa.</p>
+                    </div>
+
+                    <div class="meetings__status">
+                        CONFIDENCIAL
+                    </div>
+
+                </article>
+
+
+                <article class="meetings__item">
+
+                    <div class="meetings__date">
+                        <strong class="meetings__date-number">XX</strong>
+                        <small class="meetings__date-label">XX</small>
+                    </div>
+
+                    <div class="meetings__info">
+                        <span class="meetings__index">03</span>
+                        <h3 class="meetings__item-title">SUBSOLO</h3>
+                        <p class="meetings__description">Primeira regra: você não pergunta.</p>
+                    </div>
+
+                    <div class="meetings__status">
+                        CONFIDENCIAL
+                    </div>
+
+                </article>
+
+            </div>
+
+
+            <div class="meetings__warning">
+                SE VOCÊ ESTÁ VENDO ESTA PÁGINA,
+                TALVEZ JÁ SEJA TARDE DEMAIS.
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             CTA FINAL
+        ========================================== -->
+
+        <section class="cta">
+
+            <img class="cta__image" src="img/cta.webp" alt="" aria-hidden="true" width="1672" height="941" loading="lazy">
+
+            <div class="cta__content">
+
+                <p class="cta__eyebrow">
+                    LIBERDADE.<br>
+                    DOR.<br>
+                    IRMANDADE.
+                </p>
+
+                <h2 class="cta__title">
+                    VOCÊ ESTÁ
+                    <span class="cta__accent">PRONTO?</span>
+                </h2>
+
+                <a href="#encontros" class="button button--primary">
+                    ENCONTRE UM CLUBE
+                    <span class="button__arrow" aria-hidden="true">→</span>
+                </a>
+
+            </div>
+
+            <div class="cta__mark" aria-hidden="true">
+                ✕
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer class="footer">
+
+        <div class="logo footer__logo">
+            CLUBE <span class="logo__accent">DA LUTA</span>
+        </div>
+
+        <div class="footer__links">
+
+            <a href="#" class="footer__link">Início</a>
+            <a href="#regras" class="footer__link">Regras</a>
+            <a href="#encontros" class="footer__link">Encontros</a>
+            <a href="#sobre" class="footer__link">Quem somos?</a>
+            <a href="#contato" class="footer__link">Contato</a>
+
+        </div>
+
+        <div class="footer__onion">
+            fightclub666.onion
+            <button class="footer__copy" type="button" aria-label="Copiar endereço">
+                ⧉
+            </button>
+        </div>
+
+        <p class="footer__warning">
+            NÃO EXISTE SAÍDA.
+        </p>
+
+    </footer>
+
+</body>
+
+</html>

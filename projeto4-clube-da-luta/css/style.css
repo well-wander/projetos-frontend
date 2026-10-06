@@ -1,0 +1,1778 @@
+/* =========================================
+   FONTES (hospedadas no projeto via @font-face)
+========================================= */
+
+@font-face {
+    font-family: "Anton";
+    src: url("../fonts/anton.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Permanent Marker";
+    src: url("../fonts/permanent-marker.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* =========================================
+   VARIÁVEIS
+========================================= */
+
+:root {
+    --black: #050505;
+    --black-soft: #111111;
+    --paper: #f1ede4;
+    --paper-dark: #d8d1c3;
+    --pink: #ec66a4;
+    --pink-light: #f1a2c4;
+    --gray: #555;
+
+    --font-display: "Anton", Impact, "Arial Narrow Bold", sans-serif;
+    --font-mono: "Courier New", monospace;
+    --font-marker: "Permanent Marker", cursive;
+    --font-body: Georgia, "Times New Roman", serif;
+
+    /* grão (mesmo valor no desktop e no mobile) */
+    --grain-opacity: 0.12;
+    --grain-size: 160px;
+    --grain-speed: 1.2s;
+}
+
+
+/* =========================================
+   RESET
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* nada pode gerar rolagem lateral (clip funciona melhor no celular; hidden é o fallback) */
+html,
+body {
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--black);
+    color: var(--paper);
+
+    font-family: var(--font-body);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+
+/* =========================================
+   SEÇÃO (bloco base) E FUNDO PAPEL
+========================================= */
+
+.section {
+    position: relative;
+}
+
+.section--paper {
+    background:
+        linear-gradient(
+            rgba(241, 237, 228, 0.97),
+            rgba(241, 237, 228, 0.97)
+        );
+
+    color: #080808;
+}
+
+
+/* =========================================
+   TÍTULO DE SEÇÃO (reaproveitado nas 5 seções)
+========================================= */
+
+.section-title {
+    margin-bottom: 4rem;
+}
+
+.section-title__number {
+    display: block;
+
+    margin-bottom: 0.8rem;
+
+    color: var(--pink);
+
+    font-family: var(--font-mono);
+
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.section-title__heading {
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: clamp(3rem, 6vw, 6rem);
+
+    line-height: 0.85;
+
+    text-transform: uppercase;
+
+    letter-spacing: -2px;
+}
+
+.section-title__accent {
+    color: var(--pink);
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo {
+    font-family: var(--font-display);
+
+    font-size: 1.8rem;
+    font-style: italic;
+
+    letter-spacing: -1px;
+}
+
+.logo__accent {
+    color: var(--pink);
+}
+
+
+/* =========================================
+   HEADER E NAVEGAÇÃO
+========================================= */
+
+.header {
+    position: relative;
+    z-index: 20;
+
+    width: 100%;
+    min-height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 5%;
+
+    background: var(--black);
+
+    border-bottom: 1px solid #333;
+}
+
+.nav {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.nav__link {
+    font-family: var(--font-mono);
+
+    font-size: 0.95rem;
+    font-weight: bold;
+
+    text-transform: uppercase;
+
+    transition: color 0.2s ease;
+}
+
+.nav__link:hover {
+    color: var(--pink);
+}
+
+
+/* =========================================
+   BOTÃO
+========================================= */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 1rem;
+
+    padding: 0.85rem 1.4rem;
+
+    font-family: var(--font-display);
+
+    font-size: 0.9rem;
+
+    text-transform: uppercase;
+
+    border: none;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.button:hover {
+    transform: rotate(-1deg);
+}
+
+.button--primary {
+    background: var(--pink);
+    color: #000;
+}
+
+.button--primary:hover {
+    background: var(--pink-light);
+}
+
+.button__arrow {
+    font-size: 1.5rem;
+    line-height: 0;
+}
+
+
+/* =========================================
+   HERO
+========================================= */
+
+.hero {
+    position: relative;
+
+    min-height: calc(100vh - 80px);
+
+    display: flex;
+    align-items: center;
+
+    padding-bottom: 5rem;
+
+    overflow: hidden;
+
+    background: var(--black);
+}
+
+.hero::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    z-index: 2;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.7) 35%,
+            rgba(0, 0, 0, 0.1) 75%,
+            rgba(0, 0, 0, 0.35) 100%
+        );
+}
+
+.hero__image {
+    position: absolute;
+    inset: 0;
+
+    z-index: 1;
+}
+
+.hero__photo {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: 0.9;
+}
+
+.hero__content {
+    position: relative;
+    z-index: 3;
+
+    width: 55%;
+
+    padding-left: 8%;
+    padding-top: 3rem;
+}
+
+.hero__eyebrow {
+    margin-bottom: 2rem;
+
+    font-family: var(--font-mono);
+
+    font-size: 0.95rem;
+    font-weight: bold;
+
+    line-height: 1.6;
+
+    letter-spacing: 1px;
+
+    /* contraste sobre a foto */
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.hero__eyebrow-accent {
+    color: var(--pink);
+}
+
+.hero__title {
+    max-width: 850px;
+
+    margin-bottom: 2.5rem;
+
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: clamp(3.2rem, 5vw, 5.8rem);
+
+    line-height: 0.9;
+
+    letter-spacing: -2px;
+
+    text-transform: uppercase;
+}
+
+.hero__accent {
+    color: var(--pink);
+}
+
+.hero__note {
+    position: absolute;
+
+    z-index: 3;
+
+    right: 5%;
+    top: 50%;
+
+    transform: rotate(-6deg);
+
+    font-family: var(--font-marker);
+
+    font-size: clamp(1.2rem, 2.2vw, 2rem);
+
+    line-height: 1.2;
+
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.hero__mark {
+    position: absolute;
+
+    z-index: 3;
+
+    right: 3%;
+    bottom: 8%;
+
+    color: var(--pink);
+
+    font-family: Arial, sans-serif;
+
+    font-size: 5rem;
+
+    transform: rotate(20deg);
+}
+
+
+/* =========================================
+   REGRAS (seção 01)
+========================================= */
+
+.rules {
+    padding: 7rem 8%;
+
+    overflow: hidden;
+}
+
+.rules__content {
+    display: grid;
+
+    grid-template-columns: 1.5fr 1fr;
+
+    gap: 4rem;
+
+    align-items: center;
+}
+
+.rules__list {
+    list-style: none;
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 1.3rem 2rem;
+
+    font-family: var(--font-mono);
+
+    font-size: 1rem;
+}
+
+.rules__item {
+    display: grid;
+
+    grid-template-columns: 45px 1fr;
+
+    gap: 0.5rem;
+
+    padding-bottom: 1rem;
+
+    border-bottom: 1px solid #999;
+}
+
+/* última linha da grade (itens 7 e 8) sem borda embaixo */
+.rules__item:nth-child(n + 7) {
+    border-bottom: none;
+}
+
+.rules__number {
+    color: var(--pink);
+
+    font-family: var(--font-display);
+
+    font-size: 1.3rem;
+}
+
+.rules__image {
+    position: relative;
+
+    height: 360px;
+
+    overflow: hidden;
+
+    border: 10px solid #111;
+
+    transform: rotate(2deg);
+}
+
+.rules__image-photo {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    filter:
+        grayscale(1)
+        contrast(1.1)
+        brightness(0.7);
+}
+
+.rules__image-label {
+    position: absolute;
+
+    z-index: 2;
+
+    top: 20px;
+    left: 20px;
+
+    padding: 0.5rem 0.8rem;
+
+    background: var(--pink);
+
+    color: #000;
+
+    font-family: var(--font-display);
+
+    transform: rotate(-4deg);
+}
+
+.rules__stamp {
+    position: absolute;
+
+    z-index: 3;
+
+    right: 18px;
+    bottom: 12px;
+
+    color: var(--pink);
+
+    font-family: var(--font-marker);
+
+    font-size: 2rem;
+
+    transform: rotate(-12deg);
+}
+
+
+/* =========================================
+   ENCONTRE UM CLUBE (seção 02)
+========================================= */
+
+.find {
+    position: relative;
+
+    min-height: 600px;
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    background: #090909;
+
+    overflow: hidden;
+}
+
+.find__text {
+    position: relative;
+    z-index: 2;
+
+    padding: 7rem 8%;
+}
+
+.find__header {
+    margin-bottom: 2rem;
+}
+
+.find__description {
+    max-width: 430px;
+
+    margin-bottom: 1rem;
+
+    color: #ccc;
+
+    font-family: var(--font-mono);
+
+    font-size: 1.1rem;
+
+    line-height: 1.5;
+}
+
+.find__description--typewriter {
+    font-size: 0.9rem;
+
+    color: var(--pink);
+}
+
+.find__form {
+    max-width: 520px;
+
+    margin-top: 3rem;
+}
+
+.find__label {
+    display: block;
+
+    margin-bottom: 0.7rem;
+
+    color: var(--paper);
+
+    font-family: var(--font-mono);
+
+    font-size: 0.8rem;
+
+    text-transform: uppercase;
+}
+
+.find__form-line {
+    display: flex;
+}
+
+.find__input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 1rem;
+
+    background: var(--paper);
+
+    border: none;
+
+    outline: none;
+
+    color: #000;
+
+    font-family: var(--font-mono);
+}
+
+.find__input:focus {
+    box-shadow: 0 0 0 2px var(--pink);
+}
+
+.find__submit {
+    width: 65px;
+
+    border: none;
+
+    background: var(--pink);
+
+    font-size: 1.5rem;
+
+    cursor: pointer;
+}
+
+.find__map {
+    position: relative;
+
+    isolation: isolate;
+
+    min-height: 600px;
+
+    background:
+        linear-gradient(
+            30deg,
+            transparent 45%,
+            rgba(236, 102, 164, 0.4) 46%,
+            transparent 47%
+        ),
+        linear-gradient(
+            -30deg,
+            transparent 45%,
+            rgba(241, 237, 228, 0.1) 46%,
+            transparent 47%
+        ),
+        #171717;
+}
+
+.find__map::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.15),
+            rgba(0, 0, 0, 0.05)
+        ),
+        rgba(0, 0, 0, 0.18);
+
+    pointer-events: none;
+}
+
+.find__map-image {
+    position: absolute;
+    inset: 0;
+
+    z-index: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: 0.82;
+
+    filter:
+        grayscale(0.35)
+        contrast(1.15)
+        brightness(0.65);
+}
+
+.find__map-note {
+    position: absolute;
+
+    z-index: 3;
+
+    right: 10%;
+    bottom: 15%;
+
+    padding: 1rem;
+
+    background: var(--paper);
+
+    color: #000;
+
+    font-family: var(--font-marker);
+
+    transform: rotate(-5deg);
+}
+
+
+/* =========================================
+   MANIFESTO (seção 03)
+========================================= */
+
+.manifesto {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    min-height: 650px;
+
+    overflow: hidden;
+
+    background: var(--paper);
+
+    color: #000;
+}
+
+.manifesto__image {
+    position: relative;
+
+    min-height: 650px;
+
+    overflow: hidden;
+
+    background: #111;
+}
+
+.manifesto__image::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            transparent,
+            rgba(236, 102, 164, 0.35)
+        );
+}
+
+.manifesto__photo {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    filter:
+        grayscale(1)
+        contrast(1.5)
+        brightness(0.6);
+}
+
+.manifesto__caption {
+    position: absolute;
+
+    z-index: 2;
+
+    left: 8%;
+    bottom: 10%;
+
+    max-width: 300px;
+
+    color: white;
+
+    font-family: var(--font-marker);
+
+    font-size: 1.5rem;
+
+    transform: rotate(-6deg);
+}
+
+.manifesto__content {
+    position: relative;
+
+    padding: 7rem 10%;
+}
+
+.manifesto__header {
+    margin-bottom: 3rem;
+}
+
+.manifesto__lead {
+    max-width: 550px;
+
+    margin-bottom: 1.5rem;
+
+    font-family: var(--font-mono);
+
+    font-size: 1.6rem;
+    font-weight: bold;
+
+    line-height: 1.3;
+}
+
+.manifesto__text {
+    max-width: 550px;
+
+    margin-bottom: 1.5rem;
+
+    font-family: var(--font-mono);
+
+    font-size: 1rem;
+
+    line-height: 1.6;
+}
+
+.manifesto__highlight {
+    display: inline-block;
+
+    margin-bottom: 1.5rem;
+
+    padding: 0.2rem 0.5rem;
+
+    background: var(--pink);
+
+    font-family: var(--font-mono);
+    font-weight: bold;
+}
+
+.manifesto__handwritten {
+    position: absolute;
+
+    right: 8%;
+    bottom: 8%;
+
+    color: var(--pink);
+
+    font-family: var(--font-marker);
+
+    font-size: 1.5rem;
+
+    transform: rotate(-8deg);
+}
+
+
+/* =========================================
+   QUEM SOMOS (seção 04)
+========================================= */
+
+.who {
+    padding: 7rem 8%;
+
+    overflow: hidden;
+}
+
+.who__grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 1.5rem;
+}
+
+.who__card {
+    position: relative;
+
+    min-height: 280px;
+
+    padding: 2.5rem;
+
+    overflow: hidden;
+}
+
+.who__card--dark {
+    background: #080808;
+    color: var(--paper);
+}
+
+.who__card--light {
+    background: var(--paper-dark);
+}
+
+.who__card--pink {
+    background: var(--pink);
+}
+
+.who__card--image {
+    padding: 0;
+
+    background: #111;
+
+    color: white;
+}
+
+.who__photo {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    filter:
+        grayscale(1)
+        contrast(1.1)
+        brightness(0.85);
+}
+
+.who__caption {
+    position: absolute;
+
+    left: 2rem;
+    bottom: 2rem;
+
+    font-family: var(--font-marker);
+
+    font-size: 1.2rem;
+
+    transform: rotate(-5deg);
+}
+
+.who__card-number {
+    display: block;
+
+    margin-bottom: 2rem;
+
+    color: var(--pink);
+
+    font-family: var(--font-mono);
+    font-weight: bold;
+}
+
+.who__card-number--light,
+.who__card-number--pink {
+    color: #000;
+}
+
+.who__card-title {
+    margin-bottom: 1.5rem;
+
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: 3rem;
+}
+
+.who__card-text {
+    max-width: 350px;
+
+    font-family: var(--font-mono);
+
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   PRÓXIMOS ENCONTROS (seção 05)
+========================================= */
+
+.meetings {
+    padding: 7rem 8%;
+
+    background: #080808;
+}
+
+.meetings__list {
+    border-top: 1px solid #444;
+}
+
+.meetings__item {
+    display: grid;
+
+    grid-template-columns: 120px 1fr 180px;
+
+    gap: 2rem;
+
+    align-items: center;
+
+    padding: 2rem 0;
+
+    border-bottom: 1px solid #444;
+}
+
+/* linhas alternadas, levemente mais claras */
+.meetings__item:nth-child(even) {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.meetings__date {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    color: var(--pink);
+}
+
+.meetings__date-number {
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: 3rem;
+}
+
+.meetings__date-label {
+    font-family: var(--font-mono);
+}
+
+.meetings__index {
+    color: var(--pink);
+
+    font-family: var(--font-mono);
+}
+
+.meetings__item-title {
+    margin: 0.5rem 0;
+
+    color: var(--paper);
+
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: 1.8rem;
+}
+
+.meetings__description {
+    color: #999;
+
+    font-family: var(--font-mono);
+}
+
+.meetings__status {
+    justify-self: end;
+
+    padding: 0.5rem 0.8rem;
+
+    border: 1px solid var(--pink);
+
+    color: var(--pink);
+
+    font-family: var(--font-mono);
+
+    font-size: 0.7rem;
+}
+
+.meetings__warning {
+    margin-top: 5rem;
+
+    color: var(--pink);
+
+    font-family: var(--font-marker);
+
+    font-size: 1.5rem;
+
+    text-align: center;
+
+    transform: rotate(-2deg);
+}
+
+
+/* =========================================
+   CTA FINAL
+========================================= */
+
+.cta {
+    position: relative;
+
+    isolation: isolate;
+
+    min-height: 500px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 5rem 0;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #222 0%,
+            #050505 60%
+        );
+}
+
+.cta::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.65),
+            rgba(0, 0, 0, 0.30),
+            rgba(0, 0, 0, 0.65)
+        );
+}
+
+.cta__image {
+    position: absolute;
+    inset: 0;
+
+    z-index: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: 0.7;
+
+    filter:
+        grayscale(0.25)
+        contrast(0.95)
+        brightness(0.75);
+}
+
+.cta__content {
+    position: relative;
+    z-index: 3;
+
+    text-align: center;
+}
+
+.cta__eyebrow {
+    margin-bottom: 2rem;
+
+    color: var(--paper);
+
+    font-family: var(--font-marker);
+
+    font-size: 1.3rem;
+
+    transform: rotate(-4deg);
+}
+
+.cta__title {
+    margin-bottom: 2.5rem;
+
+    color: var(--paper);
+
+    font-family: var(--font-display);
+    font-weight: 400;
+
+    font-size: clamp(4rem, 9vw, 9rem);
+
+    line-height: 0.8;
+
+    text-transform: uppercase;
+}
+
+.cta__accent {
+    display: block;
+
+    color: var(--pink);
+}
+
+.cta__mark {
+    position: absolute;
+
+    z-index: 3;
+
+    right: 10%;
+    top: 15%;
+
+    color: var(--pink);
+
+    font-size: 8rem;
+
+    transform: rotate(20deg);
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.footer {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns: 1fr 2fr 1fr;
+
+    gap: 2rem;
+
+    align-items: center;
+
+    padding: 3rem 5%;
+
+    overflow: hidden;
+
+    background: #000;
+
+    border-top: 1px solid #333;
+}
+
+.footer__links {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 1.5rem;
+
+    font-family: var(--font-mono);
+
+    font-size: 0.8rem;
+
+    text-transform: uppercase;
+}
+
+.footer__link:hover {
+    color: var(--pink);
+}
+
+.footer__onion {
+    justify-self: end;
+
+    padding: 0.7rem 1rem;
+
+    border: 1px solid #444;
+
+    color: #888;
+
+    font-family: var(--font-mono);
+
+    font-size: 0.75rem;
+}
+
+.footer__copy {
+    margin-left: 0.5rem;
+
+    background: none;
+
+    border: none;
+
+    color: var(--pink);
+
+    cursor: pointer;
+}
+
+.footer__warning {
+    grid-column: 1 / -1;
+
+    margin-top: 2rem;
+
+    color: #444;
+
+    font-family: var(--font-mono);
+
+    font-size: 0.7rem;
+
+    text-align: center;
+}
+
+
+/* =========================================
+   ELEMENTOS DECORATIVOS
+========================================= */
+
+.decor {
+    position: absolute;
+
+    z-index: 4;
+
+    pointer-events: none;
+
+    user-select: none;
+}
+
+.decor--hero-splash {
+    width: min(330px, 30vw);
+
+    left: 45%;
+    top: 8%;
+
+    opacity: 0.18;
+
+    transform: rotate(-12deg);
+
+    mix-blend-mode: screen;
+}
+
+.decor--hero-x {
+    width: 120px;
+
+    right: 17%;
+    bottom: 15%;
+
+    opacity: 0.72;
+
+    transform: rotate(12deg);
+
+    mix-blend-mode: screen;
+}
+
+.decor--rules-tape {
+    width: 190px;
+
+    top: 2.5rem;
+    right: -2rem;
+
+    opacity: 0.9;
+
+    transform: rotate(9deg);
+}
+
+.decor--rules-note {
+    width: 220px;
+
+    left: -5rem;
+    bottom: 1rem;
+
+    opacity: 0.45;
+
+    transform: rotate(-8deg);
+}
+
+.decor--manifesto-tape {
+    z-index: 5;
+
+    width: 210px;
+
+    left: 43%;
+    top: 3rem;
+
+    opacity: 0.85;
+
+    transform: rotate(-12deg);
+}
+
+.decor--who-x {
+    width: 150px;
+
+    right: 3%;
+    top: 1rem;
+
+    opacity: 0.55;
+
+    transform: rotate(18deg);
+}
+
+
+/* =========================================
+   FILM GRAIN — RUÍDO ANIMADO SOBRE TUDO
+   (cobre a página inteira sem bloquear
+   cliques, hover, seleção ou scroll)
+
+   ::before → grão PRETO  (aparece no claro)
+   ::after  → grão BRANCO (aparece no escuro)
+========================================= */
+
+.grain {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    pointer-events: none;
+
+    overflow: hidden;
+
+    opacity: var(--grain-opacity);
+}
+
+.grain::before,
+.grain::after {
+    content: "";
+
+    position: absolute;
+    inset: -50%;
+
+    background-size: var(--grain-size) var(--grain-size);
+
+    will-change: transform;
+}
+
+/* grão escuro */
+.grain::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' x='0' y='0' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -1.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    animation: grainShift var(--grain-speed) steps(1) infinite;
+}
+
+/* grão claro */
+.grain::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' x='0' y='0' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -3 0 0 0 1.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    animation: grainShift calc(var(--grain-speed) * 1.3) steps(1) infinite reverse;
+
+    /* grão branco um pouco mais suave que o escuro */
+    opacity: 0.6;
+}
+
+@keyframes grainShift {
+    0%   { transform: translate(0, 0); }
+    10%  { transform: translate(-5%, -10%); }
+    20%  { transform: translate(-15%, 5%); }
+    30%  { transform: translate(7%, -25%); }
+    40%  { transform: translate(-5%, 25%); }
+    50%  { transform: translate(-15%, 10%); }
+    60%  { transform: translate(15%, 0); }
+    70%  { transform: translate(0, 15%); }
+    80%  { transform: translate(3%, 25%); }
+    90%  { transform: translate(-10%, 10%); }
+    100% { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grain::before,
+    .grain::after {
+        animation: none;
+    }
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+    .nav {
+        display: none;
+    }
+
+    .hero__content {
+        width: 70%;
+
+        padding-left: 6%;
+    }
+
+    .hero__title {
+        font-size: clamp(3.5rem, 9vw, 6rem);
+    }
+
+    .hero__note {
+        right: 5%;
+        top: 20%;
+    }
+
+    .rules__content,
+    .manifesto {
+        grid-template-columns: 1fr;
+    }
+
+    .rules__image {
+        height: 450px;
+    }
+
+    .manifesto__image {
+        min-height: 500px;
+    }
+
+    .find {
+        grid-template-columns: 1fr;
+    }
+
+    .find__map {
+        min-height: 450px;
+    }
+
+    .footer {
+        grid-template-columns: 1fr;
+
+        text-align: center;
+    }
+
+    .footer__links {
+        flex-wrap: wrap;
+    }
+
+    .footer__onion {
+        justify-self: center;
+    }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+    /* HEADER */
+
+    .header {
+        min-height: 70px;
+
+        padding: 0 5%;
+    }
+
+    .header__logo {
+        font-size: 1.35rem;
+    }
+
+    .header__button {
+        padding: 0.65rem 0.8rem;
+
+        font-size: 0.7rem;
+    }
+
+
+    /* HERO — 1 tela: foto ocupa o espaço que sobra, texto + botão embaixo */
+
+    .hero {
+        flex-direction: column;
+        align-items: stretch;
+
+        height: calc(100svh - 70px);
+        min-height: 540px;
+
+        padding-bottom: 0;
+    }
+
+    .hero::after {
+        display: none;
+    }
+
+    .hero__image {
+        position: relative;
+        inset: auto;
+
+        flex: 1 1 auto;
+
+        min-height: 180px;
+    }
+
+    /* funde a base da foto no preto da seção */
+    .hero__image::after {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(5, 5, 5, 0) 55%,
+                rgba(5, 5, 5, 0.7) 82%,
+                var(--black) 100%
+            );
+    }
+
+    .hero__photo {
+        position: absolute;
+        inset: 0;
+
+        object-position: 60% 40%;
+
+        opacity: 1;
+    }
+
+    .hero__content {
+        flex: 0 0 auto;
+
+        width: 100%;
+
+        margin-top: -2rem;
+
+        padding: 0 6% 2rem;
+    }
+
+    .hero__eyebrow {
+        display: none;
+    }
+
+    .hero__title {
+        max-width: 100%;
+
+        margin-bottom: 1.5rem;
+
+        font-size: clamp(1.8rem, 11vw, 3.2rem);
+
+        line-height: 0.92;
+
+        letter-spacing: -1px;
+
+        white-space: nowrap;
+    }
+
+    /* headline em 3 linhas no mobile */
+    .hero__break {
+        display: none;
+    }
+
+    /* botão largura total, fácil de tocar */
+    .hero__button {
+        width: 100%;
+
+        justify-content: space-between;
+
+        padding: 1rem 1.4rem;
+    }
+
+    .hero__note,
+    .hero__mark {
+        display: none;
+    }
+
+
+    /* SEÇÕES */
+
+    .rules,
+    .find__text,
+    .manifesto__content,
+    .who,
+    .meetings {
+        padding: 5rem 6%;
+    }
+
+    .section-title__heading {
+        font-size: clamp(3rem, 15vw, 5rem);
+    }
+
+
+    /* REGRAS — lista em 1 coluna: só o último item fica sem borda */
+
+    .rules__content {
+        gap: 3rem;
+    }
+
+    .rules__list {
+        grid-template-columns: 1fr;
+
+        font-size: 0.85rem;
+    }
+
+    .rules__item:nth-child(7) {
+        border-bottom: 1px solid #999;
+    }
+
+    .rules__item:last-child {
+        border-bottom: none;
+    }
+
+    .rules__image {
+        height: 300px;
+    }
+
+
+    /* ENCONTRE UM CLUBE */
+
+    .find__map {
+        min-height: 350px;
+    }
+
+    .find__map-note {
+        font-size: 0.8rem;
+    }
+
+
+    /* MANIFESTO — texto primeiro, imagem depois: evita colar com o mapa da seção 02 */
+
+    .manifesto__image {
+        order: 2;
+
+        min-height: 400px;
+    }
+
+    .manifesto__text {
+        font-size: 0.9rem;
+    }
+
+    .manifesto__handwritten {
+        position: relative;
+
+        right: auto;
+        bottom: auto;
+
+        margin-top: 3rem;
+    }
+
+
+    /* QUEM SOMOS */
+
+    .who__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .who__card {
+        min-height: 250px;
+    }
+
+
+    /* ENCONTROS */
+
+    .meetings__item {
+        grid-template-columns: 65px 1fr;
+
+        gap: 1rem;
+    }
+
+    .meetings__date-number {
+        font-size: 2rem;
+    }
+
+    .meetings__item-title {
+        font-size: 1.2rem;
+    }
+
+    .meetings__status {
+        display: none;
+    }
+
+
+    /* CTA */
+
+    .cta {
+        min-height: 450px;
+    }
+
+    .cta__mark {
+        right: 5%;
+        top: 10%;
+
+        font-size: 5rem;
+    }
+
+
+    /* FOOTER */
+
+    .footer {
+        padding: 3rem 6%;
+    }
+
+    .footer__links {
+        flex-direction: column;
+
+        gap: 1rem;
+    }
+
+
+    /* DECORAÇÃO */
+
+    .decor--hero-splash {
+        width: 220px;
+
+        left: 45%;
+        top: 12%;
+
+        opacity: 0.12;
+    }
+
+    .decor--hero-x {
+        width: 80px;
+
+        right: 8%;
+        top: 26%;
+        bottom: auto;
+
+        opacity: 0.5;
+    }
+
+    .decor--rules-tape,
+    .decor--manifesto-tape {
+        opacity: 0.35;
+    }
+
+    .decor--rules-note,
+    .decor--who-x {
+        display: none;
+    }
+
+    .decor--manifesto-tape {
+        width: 150px;
+
+        left: auto;
+        right: -2rem;
+        top: 1rem;
+    }
+}
