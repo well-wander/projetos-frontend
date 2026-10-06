@@ -6,28 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Github</title>
     <link rel="stylesheet" href="main.css">
+    <script src="main.js" defer></script>
 </head>
 <body>
     <header>
-        <div class="container">
-            <img class="profile-avatar" src="https://via.placeholder.com/180x180" alt=".">
-            <h1 class="profile-name">Gian Souza</h1>
-            <h2 class="profile-username">@ogiansouza</h2>
+        <!-- aria-busy fica "true" enquanto os dados estão sendo buscados -->
+        <div class="container" id="perfil" aria-busy="true">
+            <img
+                class="profile-avatar"
+                id="avatar"
+                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23d6d6d6'/%3E%3C/svg%3E"
+                alt=""
+                width="180"
+                height="180"
+            >
+            <h1 class="profile-name" id="nome">Carregando...</h1>
+            <h2 class="profile-username" id="usuario">&nbsp;</h2>
             <ul class="numbers">
                 <li class="numbers-item">
                     <h4>Repositórios</h4>
-                    5
+                    <span id="repositorios">-</span>
                 </li>
                 <li class="numbers-item">
                     <h4>Seguidores</h4>
-                    5
+                    <span id="seguidores">-</span>
                 </li>
                 <li class="numbers-item">
                     <h4>Seguindo</h4>
-                    5
+                    <span id="seguindo">-</span>
                 </li>
             </ul>
-            <a href="#" class="profile-link">Ver no Github</a>
+            <a href="https://github.com" class="profile-link" id="link" target="_blank" rel="noopener">Ver no Github</a>
+
+            <!-- mensagem exibida só quando a requisição falha -->
+            <p class="profile-error" id="erro" role="alert" hidden></p>
         </div>
     </header>
 </body>

@@ -12,7 +12,7 @@
 }
 
 body {
-    background-color: var(--bg-color);;
+    background-color: var(--bg-color);
 }
 
 .container {
@@ -69,4 +69,20 @@ header .container {
 
 .numbers-item h4 {
     font-size: .3em;
+}
+
+/* mensagem de erro da requisição (aparece só quando algo falha) */
+.profile-error {
+    margin-top: 24px;
+    padding: 12px 16px;
+    border-left: 4px solid #c0392b;
+    background-color: #fdecea;
+    color: #8e1c12;
+    text-align: left;
+}
+
+/* enquanto carrega, os dados ficam esmaecidos */
+.container[aria-busy="true"] .numbers,
+.container[aria-busy="true"] .profile-link {
+    opacity: .4;
 }
