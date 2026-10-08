@@ -1,8 +1,8 @@
 /* =========================================
    RECURSOS DO ES6+
 
-   Os alunos de Hogwarts fizeram os N.O.M.s
-   (Níveis Ordinários em Magia). Quem tirou 6 ou mais foi aprovado.
+   Os alunos de Hogwarts fizeram as provas de fim de ano.
+   Quem tirou 6 ou mais foi aprovado.
 ========================================= */
 
 const NOTA_MINIMA = 6;

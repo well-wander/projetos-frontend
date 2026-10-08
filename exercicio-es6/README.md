@@ -1,8 +1,8 @@
-# Os N.O.M.s de Hogwarts — Exercício de Recursos do ES6+
+# Provas de Hogwarts — Exercício de Recursos do ES6+
 
 Exercício do módulo **Recursos do ES6+** do curso de Engenheiro Front-End da [EBAC](https://ebaconline.com.br).
 
-Os alunos de Hogwarts fizeram os N.O.M.s (Níveis Ordinários em Magia). Quem tirou 6 ou mais foi aprovado.
+Os alunos de Hogwarts fizeram as provas de fim de ano. Quem tirou 6 ou mais foi aprovado.
 
 ## O que foi feito
 
