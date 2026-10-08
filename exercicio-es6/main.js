@@ -1,30 +1,30 @@
 /* =========================================
    RECURSOS DO ES6+
 
-   Os alunos da Sociedade do Anel fizeram a prova
-   de Valfenda. Quem tirou 6 ou mais segue na jornada.
+   Os alunos de Hogwarts fizeram os N.O.M.s
+   (Níveis Ordinários em Magia). Quem tirou 6 ou mais foi aprovado.
 ========================================= */
 
 const NOTA_MINIMA = 6;
 
 // array de objetos com o nome e a nota de cada aluno
 const alunos = [
-    { nome: "Frodo", nota: 9.5 },
-    { nome: "Sam", nota: 8 },
-    { nome: "Merry", nota: 6 },
-    { nome: "Pippin", nota: 4.5 },
-    { nome: "Aragorn", nota: 10 },
-    { nome: "Legolas", nota: 9 },
-    { nome: "Gimli", nota: 7 },
-    { nome: "Boromir", nota: 5.5 },
-    { nome: "Gollum", nota: 2 }
+    { nome: "Hermione Granger", nota: 10 },
+    { nome: "Harry Potter", nota: 7.5 },
+    { nome: "Rony Weasley", nota: 6 },
+    { nome: "Luna Lovegood", nota: 9 },
+    { nome: "Neville Longbottom", nota: 6.5 },
+    { nome: "Draco Malfoy", nota: 8 },
+    { nome: "Simas Finnigan", nota: 5.5 },
+    { nome: "Vincent Crabbe", nota: 3 },
+    { nome: "Gregory Goyle", nota: 2.5 }
 ];
 
 // retorna apenas os alunos com nota maior ou igual à mínima (6, se nada for passado)
 const filtraAprovados = (listaDeAlunos, notaMinima = NOTA_MINIMA) =>
     listaDeAlunos.filter(({ nota }) => nota >= notaMinima);
 
-// o contrário, para mostrar também quem ficou em Valfenda
+// o contrário, para mostrar também quem vai ter que refazer a prova
 const filtraReprovados = (listaDeAlunos, notaMinima = NOTA_MINIMA) =>
     listaDeAlunos.filter(({ nota }) => nota < notaMinima);
 
@@ -45,4 +45,4 @@ const montaLista = (listaDeAlunos) =>
 document.querySelector("#aprovados").innerHTML = montaLista(aprovados);
 document.querySelector("#reprovados").innerHTML = montaLista(reprovados);
 document.querySelector("#resumo").textContent =
-    `${aprovados.length} de ${alunos.length} alunos tiraram ${NOTA_MINIMA} ou mais e seguem na jornada.`;
+    `${aprovados.length} de ${alunos.length} alunos tiraram ${NOTA_MINIMA} ou mais e foram aprovados.`;

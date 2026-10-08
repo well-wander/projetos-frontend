@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prova de Valfenda — Recursos do ES6+</title>
+    <title>N.O.M.s de Hogwarts — Recursos do ES6+</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap" rel="stylesheet">
     <style>
-        /* pergaminho, tinta e o ouro do Um Anel */
+        /* pergaminho, tinta e o vinho e o dourado de Hogwarts */
         :root {
             --pergaminho: #f4ead5;
             --tinta: #3b2a1a;
-            --ouro: #b8862b;
+            --ouro: #c9a227;
+            --vinho: #740001;
             --vermelho: #8b2e1f;
             --verde: #3e5b2e;
         }
@@ -34,7 +35,7 @@
         }
 
         h1 {
-            color: var(--ouro);
+            color: var(--vinho);
             margin-bottom: 8px;
         }
 
@@ -77,17 +78,17 @@
     </style>
 </head>
 <body>
-    <h1>A Prova de Valfenda</h1>
+    <h1>Os N.O.M.s de Hogwarts</h1>
     <p id="resumo"></p>
 
     <div class="colunas">
         <section class="aprovados">
-            <h2>Seguem na jornada</h2>
+            <h2>Aprovados</h2>
             <ul id="aprovados"></ul>
         </section>
 
         <section class="reprovados">
-            <h2>Ficam em Valfenda</h2>
+            <h2>Refazem a prova</h2>
             <ul id="reprovados"></ul>
         </section>
     </div>

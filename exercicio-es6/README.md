@@ -1,8 +1,8 @@
-# A Prova de Valfenda — Exercício de Recursos do ES6+
+# Os N.O.M.s de Hogwarts — Exercício de Recursos do ES6+
 
 Exercício do módulo **Recursos do ES6+** do curso de Engenheiro Front-End da [EBAC](https://ebaconline.com.br).
 
-Os membros da Sociedade do Anel fizeram uma prova em Valfenda. Quem tirou 6 ou mais segue na jornada.
+Os alunos de Hogwarts fizeram os N.O.M.s (Níveis Ordinários em Magia). Quem tirou 6 ou mais foi aprovado.
 
 ## O que foi feito
 
@@ -18,4 +18,4 @@ Os membros da Sociedade do Anel fizeram uma prova em Valfenda. Quem tirou 6 ou m
 
 ## Como testar
 
-Abra o `index.html` no navegador. A página mostra quem passou e quem ficou, e o console (F12) mostra os dois arrays.
+Abra o `index.html` no navegador. A página mostra quem foi aprovado e quem vai refazer a prova, e o console (F12) mostra os dois arrays.
