@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fábrica de Clones de Kamino — TypeScript</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* o espaço, o amarelo da abertura dos filmes e o azul do sabre do Obi-Wan */
+        :root {
+            --espaco: #05060f;
+            --amarelo: #ffe81f;
+            --azul: #4fc3ff;
+            --texto: #e8e8f0;
+            --cartao: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", system-ui, sans-serif;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 16px;
+            color: var(--texto);
+            background-color: var(--espaco);
+            /* estrelas feitas só com CSS */
+            background-image:
+                radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+                radial-gradient(1px 1px at 70% 10%, #fff, transparent),
+                radial-gradient(1px 1px at 40% 60%, #fff, transparent),
+                radial-gradient(1px 1px at 85% 75%, #fff, transparent),
+                radial-gradient(1px 1px at 25% 85%, #fff, transparent),
+                radial-gradient(2px 2px at 55% 35%, #fff, transparent);
+            background-size: 300px 300px;
+        }
+
+        h1,
+        h2 {
+            font-family: "Orbitron", sans-serif;
+            color: var(--amarelo);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            margin-bottom: 8px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            margin-top: 0;
+            opacity: 0.8;
+        }
+
+        section {
+            margin-top: 32px;
+            padding: 24px;
+            border: 1px solid var(--amarelo);
+            border-radius: 8px;
+            background: var(--cartao);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1 1 160px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #111;
+            color: var(--texto);
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: var(--amarelo);
+            color: var(--espaco);
+            font-family: "Orbitron", sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .resultado {
+            min-height: 1.5em;
+            margin-bottom: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--azul);
+        }
+    </style>
+</head>
+<body>
+    <h1>Fábrica de Clones de Kamino</h1>
+    <p class="subtitulo">Duas funções em TypeScript a serviço da República</p>
+
+    <section>
+        <h2>Multiplicação: quantos clones vamos ter?</h2>
+        <form id="form-clones">
+            <label>
+                Lotes de produção
+                <input type="number" id="lotes" min="0" value="12" required>
+            </label>
+            <label>
+                Clones por lote
+                <input type="number" id="por-lote" min="0" value="1200" required>
+            </label>
+            <button type="submit">Multiplicar</button>
+        </form>
+        <p class="resultado" id="resultado-clones" aria-live="polite"></p>
+    </section>
+
+    <section>
+        <h2>Saudação: hello there!</h2>
+        <form id="form-saudacao">
+            <label>
+                Seu nome
+                <input type="text" id="nome" value="General Kenobi" required>
+            </label>
+            <button type="submit">Saudar</button>
+        </form>
+        <p class="resultado" id="resultado-saudacao" aria-live="polite"></p>
+    </section>
+
+    <!-- arquivos gerados pelo TypeScript (npm run build) -->
+    <script src="dist/funcoes.js"></script>
+    <script src="dist/pagina.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "exercicio-ts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exercício do módulo Conheça o TypeScript (EBAC)",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
