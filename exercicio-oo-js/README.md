@@ -2,6 +2,8 @@
 
 Exercício do módulo **Orientação a objetos com JavaScript** do curso de Engenheiro Front-End da [EBAC](https://ebaconline.com.br).
 
+![Charmander, Charmeleon e Charizard lado a lado](img/evolucao-charmander.jpg)
+
 ## O que foi feito
 
 - **Abstração:** a classe `Pokemon` reúne o que todo Pokémon tem (nome, tipo, nível, experiência) e o que todo Pokémon faz (`apresentar`, `atacar`, `treinar`).
