@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prova de Valfenda — Recursos do ES6+</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond&display=swap" rel="stylesheet">
+    <style>
+        /* pergaminho, tinta e o ouro do Um Anel */
+        :root {
+            --pergaminho: #f4ead5;
+            --tinta: #3b2a1a;
+            --ouro: #b8862b;
+            --vermelho: #8b2e1f;
+            --verde: #3e5b2e;
+        }
+
+        body {
+            font-family: "EB Garamond", Georgia, serif;
+            font-size: 18px;
+            max-width: 720px;
+            margin: 40px auto;
+            padding: 0 16px;
+            background: var(--pergaminho);
+            color: var(--tinta);
+        }
+
+        h1,
+        h2 {
+            font-family: "Cinzel", Georgia, serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--ouro);
+            margin-bottom: 8px;
+        }
+
+        #resumo {
+            text-align: center;
+            font-style: italic;
+        }
+
+        .colunas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        section {
+            border: 2px solid var(--ouro);
+            padding: 16px 24px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--ouro);
+        }
+
+        .aprovados h2 {
+            color: var(--verde);
+        }
+
+        .reprovados h2 {
+            color: var(--vermelho);
+        }
+    </style>
+</head>
+<body>
+    <h1>A Prova de Valfenda</h1>
+    <p id="resumo"></p>
+
+    <div class="colunas">
+        <section class="aprovados">
+            <h2>Seguem na jornada</h2>
+            <ul id="aprovados"></ul>
+        </section>
+
+        <section class="reprovados">
+            <h2>Ficam em Valfenda</h2>
+            <ul id="reprovados"></ul>
+        </section>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
