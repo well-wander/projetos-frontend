@@ -1,15 +1,15 @@
-# Clube da Luta — Exercício de Orientação a Objetos
+# Linha evolutiva do Charmander — Exercício de Orientação a Objetos
 
 Exercício do módulo **Orientação a objetos com JavaScript** do curso de Engenheiro Front-End da [EBAC](https://ebaconline.com.br).
 
 ## O que foi feito
 
-- **Abstração:** a classe `Lutador` reúne o que todo lutador tem (nome, idade, peso, vitórias) e o que todo lutador faz (`apresentar`, `golpear`, `vencer`).
-- **Herança:** `Boxeador` e `Judoca` herdam de `Lutador` com `Lutador.call(this, ...)` e acrescentam o próprio atributo (`categoria` e `faixa`).
-- **Polimorfismo:** cada herdeira reescreve o `golpear()` e complementa o `apresentar()` da classe pai.
-- **Encapsulamento:** as vitórias ficam numa variável privada (`_vitorias`), lida só pelo `getVitorias()` e alterada só pelo `vencer()`.
-- **Instâncias:** `tyler` (Boxeador), `marla` (Judoca) e `bob` (Lutador).
+- **Abstração:** a classe `Pokemon` reúne o que todo Pokémon tem (nome, tipo, nível, experiência) e o que todo Pokémon faz (`apresentar`, `atacar`, `treinar`).
+- **Herança:** `Charmander`, `Charmeleon` e `Charizard` herdam de `Pokemon` com `Pokemon.call(this, ...)` e acrescentam o que é só deles (a próxima evolução e, no caso do Charizard, o método `voar()`).
+- **Polimorfismo:** cada herdeira reescreve o `atacar()` (Brasas, Lança-Chamas, Explosão de Fogo) e complementa o `apresentar()` da classe pai.
+- **Encapsulamento:** a experiência fica numa variável privada (`_experiencia`), lida só pelo `getExperiencia()` e alterada só pelo `treinar()`.
+- **Instâncias:** `charmander`, `charmeleon` e `charizard`.
 
 ## Como testar
 
-Abra o `index.html` no navegador. Os lutadores aparecem na página e no console (F12).
+Abra o `index.html` no navegador. Os Pokémon aparecem na página e no console (F12).

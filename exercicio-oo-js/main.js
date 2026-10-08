@@ -1,98 +1,118 @@
 /* =========================================
    ORIENTAÇÃO A OBJETOS COM JAVASCRIPT
 
-   Abstração: Lutador
-   Herdeiras: Boxeador e Judoca
-   Instâncias: tyler, marla e bob
+   Abstração: Pokemon
+   Herdeiras: Charmander, Charmeleon e Charizard
+   Instâncias: charmander, charmeleon e charizard
 ========================================= */
 
 // ---------- abstração ----------
 
-// o que todo lutador tem, independente da modalidade
-function Lutador(nome, idade, peso) {
+// o que todo Pokémon tem, independente da espécie
+function Pokemon(nome, tipo, nivel) {
     this.nome = nome;
-    this.idade = idade;
-    this.peso = peso;
+    this.tipo = tipo;
+    this.nivel = nivel;
 
-    // encapsulamento: as vitórias só mudam pelos métodos abaixo
-    let _vitorias = 0;
+    // encapsulamento: a experiência só muda pelos métodos abaixo
+    let _experiencia = 0;
 
-    this.getVitorias = function () {
-        return _vitorias;
+    this.getExperiencia = function () {
+        return _experiencia;
     };
 
-    this.vencer = function () {
-        _vitorias++;
+    this.treinar = function (pontos) {
+        _experiencia += pontos;
     };
 
     this.apresentar = function () {
-        return `${this.nome}, ${this.idade} anos, ${this.peso} kg — ${_vitorias} vitória(s)`;
+        return `${this.nome} — tipo ${this.tipo}, nível ${this.nivel}, ${_experiencia} de experiência`;
     };
 
-    // cada modalidade golpeia de um jeito (polimorfismo)
-    this.golpear = function () {
-        return `${this.nome} dá um golpe genérico.`;
+    // cada espécie ataca de um jeito (polimorfismo)
+    this.atacar = function () {
+        return `${this.nome} usa Investida!`;
     };
 }
 
-// ---------- herdeiras ----------
+// ---------- herdeiras (a linha evolutiva) ----------
 
-function Boxeador(nome, idade, peso, categoria) {
-    Lutador.call(this, nome, idade, peso);
+function Charmander(nivel) {
+    Pokemon.call(this, "Charmander", "Fogo", nivel);
 
-    this.categoria = categoria;
+    this.evoluiPara = "Charmeleon";
 
-    this.golpear = function () {
-        return `${this.nome} acerta um jab de direita!`;
+    this.atacar = function () {
+        return `${this.nome} usa Brasas!`;
     };
 
-    // reaproveita a apresentação da classe pai e acrescenta a categoria
-    const apresentarLutador = this.apresentar;
+    // reaproveita a apresentação da classe pai e acrescenta a evolução
+    const apresentarPokemon = this.apresentar;
     this.apresentar = function () {
-        return `${apresentarLutador.call(this)} | Boxe, peso ${this.categoria}`;
+        return `${apresentarPokemon.call(this)} | evolui para ${this.evoluiPara} no nível 16`;
     };
 }
 
-function Judoca(nome, idade, peso, faixa) {
-    Lutador.call(this, nome, idade, peso);
+function Charmeleon(nivel) {
+    Pokemon.call(this, "Charmeleon", "Fogo", nivel);
 
-    this.faixa = faixa;
+    this.evoluiPara = "Charizard";
 
-    this.golpear = function () {
-        return `${this.nome} aplica um ippon-seoi-nage!`;
+    this.atacar = function () {
+        return `${this.nome} usa Lança-Chamas!`;
     };
 
-    const apresentarLutador = this.apresentar;
+    const apresentarPokemon = this.apresentar;
     this.apresentar = function () {
-        return `${apresentarLutador.call(this)} | Judô, faixa ${this.faixa}`;
+        return `${apresentarPokemon.call(this)} | evolui para ${this.evoluiPara} no nível 36`;
+    };
+}
+
+function Charizard(nivel) {
+    Pokemon.call(this, "Charizard", "Fogo/Voador", nivel);
+
+    this.atacar = function () {
+        return `${this.nome} usa Explosão de Fogo!`;
+    };
+
+    // só o Charizard voa
+    this.voar = function () {
+        return `${this.nome} abre as asas e levanta voo!`;
+    };
+
+    const apresentarPokemon = this.apresentar;
+    this.apresentar = function () {
+        return `${apresentarPokemon.call(this)} | evolução final`;
     };
 }
 
 // ---------- instâncias ----------
 
-const tyler = new Boxeador("Tyler", 35, 77, "médio");
-const marla = new Judoca("Marla", 30, 57, "preta");
-const bob = new Lutador("Bob", 48, 120);
+const charmander = new Charmander(5);
+const charmeleon = new Charmeleon(16);
+const charizard = new Charizard(36);
 
-tyler.vencer();
-tyler.vencer();
-marla.vencer();
+charmander.treinar(120);
+charmeleon.treinar(800);
+charizard.treinar(2500);
 
-const lutadores = [tyler, marla, bob];
+const pokemons = [charmander, charmeleon, charizard];
 
 // ---------- saída (console e página) ----------
 
-const lista = document.querySelector("#lutadores");
+const lista = document.querySelector("#pokemons");
 
-lutadores.forEach(function (lutador) {
-    console.log(lutador.apresentar());
-    console.log(lutador.golpear());
+pokemons.forEach(function (pokemon) {
+    console.log(pokemon.apresentar());
+    console.log(pokemon.atacar());
 
     const item = document.createElement("li");
-    item.innerHTML = `<strong>${lutador.apresentar()}</strong><br>${lutador.golpear()}`;
+    item.innerHTML = `<strong>${pokemon.apresentar()}</strong><br>${pokemon.atacar()}`;
     lista.appendChild(item);
 });
 
-// o _vitorias é privado: não dá pra acessar nem alterar de fora
-console.log(tyler._vitorias); // undefined
-console.log(tyler.getVitorias()); // 2
+console.log(charizard.voar());
+
+// a _experiencia é privada: não dá pra acessar nem alterar de fora
+console.log(charmander._experiencia); // undefined
+console.log(charmander.getExperiencia()); // 120
