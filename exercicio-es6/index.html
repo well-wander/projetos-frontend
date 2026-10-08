@@ -28,6 +28,16 @@
             color: var(--tinta);
         }
 
+        /* o multiply faz o fundo branco da aquarela sumir no pergaminho */
+        .ilustracao {
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            margin: 0 auto;
+            mix-blend-mode: multiply;
+        }
+
         h1,
         h2 {
             font-family: "Cinzel", Georgia, serif;
@@ -78,6 +88,8 @@
     </style>
 </head>
 <body>
+    <img class="ilustracao" src="img/hogwarts.jpg" alt="Aquarela do castelo de Hogwarts no alto de um rochedo, à beira do lago" width="500" height="326">
+
     <h1>Provas de Hogwarts</h1>
     <p id="resumo"></p>
 

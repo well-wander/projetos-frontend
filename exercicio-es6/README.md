@@ -2,6 +2,8 @@
 
 Exercício do módulo **Recursos do ES6+** do curso de Engenheiro Front-End da [EBAC](https://ebaconline.com.br).
 
+![Aquarela do castelo de Hogwarts](img/hogwarts.jpg)
+
 Os alunos de Hogwarts fizeram as provas de fim de ano. Quem tirou 6 ou mais foi aprovado.
 
 ## O que foi feito
