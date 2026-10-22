@@ -647,3 +647,49 @@ button:focus-visible { outline: 3px dashed #ffd84a; outline-offset: 7px; }
   .skin-name { font-size: 17px; }
   .ph { font-size: 22px; }
 }
+
+/* ---------- Direcional na tela ---------- */
+body.with-dpad { --size: min(calc(100vw - 40px), calc(100vh - 360px), 640px); }
+@supports (height: 100dvh) {
+  body.with-dpad { --size: min(calc(100vw - 40px), calc(100dvh - 360px), 640px); }
+}
+body.with-dpad .hint { display: none; }
+body.with-dpad .app { gap: 14px; padding-top: max(16px, env(safe-area-inset-top)); }
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 56px);
+  grid-template-areas: ". up ." "left . right" ". down .";
+  gap: 6px;
+  margin-top: 4px;
+  touch-action: none;
+}
+
+.dpad[hidden] { display: none; }
+
+.dp {
+  border: none;
+  background: var(--panel-2);
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: var(--px-border), inset -4px -4px 0 0 rgba(0, 0, 0, .4), inset 4px 4px 0 0 rgba(255, 255, 255, .15);
+  touch-action: none;
+  -webkit-user-select: none;
+}
+
+.dp.up { grid-area: up; }
+.dp.left { grid-area: left; }
+.dp.down { grid-area: down; }
+.dp.right { grid-area: right; }
+.dp.current { background: #2f6a8a; }
+.dp.pressed { background: #4af0ff; color: #1a0b2e; transform: translateY(3px); box-shadow: var(--px-border), inset 4px 4px 0 0 rgba(0, 0, 0, .35); }
+
+.mini.install { background: #2a5a2a; }
+
+.fill.boss {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 6px, rgba(0, 0, 0, .25) 6px 8px),
+    linear-gradient(90deg, #ff3b5c, #ff7a5a);
+}

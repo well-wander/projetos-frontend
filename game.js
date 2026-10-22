@@ -175,25 +175,25 @@
       ],
     },
     {
-      name: 'Torre do Corvo', goal: 18, theme: 9, rotten: 3, golden: true, runner: true, crow: true, powers: ALL_POWERS,
-      news: 'O Corvo sobrevoa a torre jogando maçãs podres. Recupere as últimas sementes e zere o jogo!',
+      name: 'Torre do Corvo', goal: 18, theme: 9, rotten: 3, golden: true, boss: true, powers: ALL_POWERS,
+      news: 'Chefe final! Bata no Corvo com a cabeça quando ele pousar (a sombra no chão avisa onde). Fuja da faixa vermelha: é o rasante dele!',
       inner: [
         '1................2',
         '..................',
-        '.#######..#######.',
+        '..##..........##..',
+        '..##..........##..',
         '..................',
-        '.#..............#.',
-        '.#...BBBBBBBB...#.',
-        '.#..............#.',
         '..................',
-        '........##........',
-        '........##........',
         '..................',
-        '.#..............#.',
-        '.#...BBBBBBBB...#.',
-        '.#..............#.',
         '..................',
-        '.#######..#######.',
+        '..................',
+        '..................',
+        '..................',
+        '..................',
+        '..................',
+        '..................',
+        '..##..........##..',
+        '..##..........##..',
         '..................',
         '2................1',
       ],
@@ -308,6 +308,7 @@
       muted: false,
       musicOff: false,
       seenStory: false,
+      dpad: 'auto', // auto | on | off
     };
   }
 
@@ -329,6 +330,7 @@
     d.muted = !!o.muted;
     d.musicOff = !!o.musicOff;
     d.seenStory = !!o.seenStory;
+    if (['auto', 'on', 'off'].indexOf(o.dpad) >= 0) d.dpad = o.dpad;
     if (SKINS[d.skin].cost > d.total) d.skin = 'arco';
     return d;
   }
@@ -377,10 +379,12 @@
     total: $('total'), nextFill: $('nextFill'), nextText: $('nextText'),
     skins: $('skins'), diffs: $('diffs'), phases: $('phases'), play: $('play'),
     sfxToggle: $('sfxToggle'), musicToggle: $('musicToggle'),
+    dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'),
   };
   const fmt = (n) => Math.round(n).toLocaleString('pt-BR');
   const appleURL = PX.canvasURL(PX.apple('red'), 2);
   document.querySelectorAll('[data-apple-icon]').forEach((img) => { img.src = appleURL; });
+  const goalLabelHTML = ui.goalLabel.innerHTML;
 
   // =====================================================================
   //  ESTADO
@@ -428,7 +432,7 @@
   let ghostWarned = false;
   let warnTick = 0;
   let emberTimer = 0;
-  let crow = null;
+  let boss = null;
   let deathAt = 0;
   let deathReason = '';
   let burstIdx = 0;
@@ -642,7 +646,7 @@
     shieldReady = !!SKIN.shield;
     ghostUntil = 0;
     ghostWarned = false;
-    crow = P.crow ? { active: false, nextAt: 3000 } : null;
+    boss = P.boss ? newBoss() : null;
     clearShown = false;
     colorAmt = 0.3;
     particles.length = 0;
@@ -679,7 +683,7 @@
     state = 'intro';
     ui.introKicker.textContent = `Terra ${idx + 1} de ${PHASES.length} · ${D.name}`;
     ui.introName.textContent = P.name;
-    ui.introGoal.textContent = `Meta: ${P.goal} maçãs`;
+    ui.introGoal.textContent = P.boss ? `Derrote o Corvo: ${BOSS_HP[save.diff]} golpes` : `Meta: ${P.goal} maçãs`;
     ui.introSize.textContent = `Mapa ${N}×${N}`;
     ui.introNews.textContent = P.news || '';
     const prevPowers = idx > 0 ? PHASES[idx - 1].powers : [];
@@ -911,6 +915,75 @@
   });
 
   // =====================================================================
+  //  DIRECIONAL NA TELA
+  // =====================================================================
+  const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window;
+  const DPAD_DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  const DPAD_LABEL = { auto: 'automático', on: 'ligado', off: 'desligado' };
+
+  function applyDpad() {
+    const on = save.dpad === 'on' || (save.dpad === 'auto' && isTouch);
+    ui.dpad.hidden = !on;
+    document.body.classList.toggle('with-dpad', on);
+    ui.dpadToggle.textContent = 'Direcional: ' + DPAD_LABEL[save.dpad];
+    resize();
+  }
+
+  function dpadPress(e) {
+    const b = e.target.closest ? e.target.closest('.dp') : null;
+    if (!b) return;
+    e.preventDefault();
+    const d = DPAD_DIRS[b.dataset.dir];
+    b.classList.add('pressed');
+    setTimeout(() => b.classList.remove('pressed'), 120);
+    if (state === 'intro') { beginReady(); return; }
+    pushDir(d[0], d[1]);
+    vibrate(8);
+  }
+  if (window.PointerEvent) ui.dpad.addEventListener('pointerdown', dpadPress);
+  else ui.dpad.addEventListener('touchstart', dpadPress, { passive: false });
+
+  let dpadShown = '';
+  function syncDpadCurrent() {
+    if (ui.dpad.hidden) return;
+    const k = state === 'play' ? (dir.x === 1 ? 'right' : dir.x === -1 ? 'left' : dir.y === 1 ? 'down' : 'up') : '';
+    if (k === dpadShown) return;
+    dpadShown = k;
+    for (const b of ui.dpad.children) b.classList.toggle('current', b.dataset.dir === k);
+  }
+
+  ui.dpadToggle.addEventListener('click', () => {
+    save.dpad = save.dpad === 'auto' ? 'on' : save.dpad === 'on' ? 'off' : 'auto';
+    persist();
+    applyDpad();
+  });
+
+  // =====================================================================
+  //  INSTALAR COMO APP (PWA)
+  // =====================================================================
+  let installEvent = null;
+  const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installEvent = e;
+    ui.installApp.hidden = false;
+  });
+  if (isIOS && !standalone) ui.installApp.hidden = false;
+  ui.installApp.addEventListener('click', () => {
+    if (installEvent) {
+      installEvent.prompt();
+      installEvent.userChoice.then(() => { installEvent = null; ui.installApp.hidden = true; });
+    } else {
+      alert('Para instalar no iPhone: toque no botão Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".');
+    }
+  });
+  window.addEventListener('appinstalled', () => { ui.installApp.hidden = true; });
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+
+  // =====================================================================
   //  LÓGICA DE CADA PASSO
   // =====================================================================
   const tickNow = () => tick * (buffs.slow ? SLOW_FACTOR : 1);
@@ -958,6 +1031,8 @@
     // o modo fantasma não pode acabar com a cabeça dentro de uma barreira
     if (phaseTime < ghostUntil && grid[ny * N + nx] !== 0) ghostUntil = Math.max(ghostUntil, phaseTime + tickNow() + 1);
 
+    if (boss && boss.mode === 'landed' && nx >= boss.target.x && nx <= boss.target.x + 1 && ny >= boss.target.y && ny <= boss.target.y + 1) bossHit();
+    if (state !== 'play') return;
     if (apple && nx === apple.x && ny === apple.y) eat(apple, 'red');
     else if (golden && nx === golden.x && ny === golden.y) eat(golden, 'gold');
     else if (power && nx === power.x && ny === power.y) takePower();
@@ -1010,9 +1085,9 @@
     if (gold) {
       golden = null;
     } else {
-      apple = applesEaten < P.goal ? spawnFree(3) : null;
+      apple = P.boss || applesEaten < P.goal ? spawnFree(3) : null;
       if (apple) apple.nextHop = phaseTime + 600;
-      if (P.golden && !golden && applesEaten < P.goal && Math.random() < 0.25) {
+      if (P.golden && !golden && (P.boss || applesEaten < P.goal) && Math.random() < 0.25) {
         const g = spawnFree(4);
         if (g) golden = g;
       }
@@ -1020,7 +1095,7 @@
 
     updateHud(true);
     persist();
-    if (applesEaten >= P.goal) phaseClear();
+    if (!P.boss && applesEaten >= P.goal) phaseClear();
   }
 
   function eatRotten(idx) {
@@ -1156,8 +1231,10 @@
     state = 'dead';
     recordBest();
     ui.deadReason.textContent = deathReason;
-    const left = P.goal - applesEaten;
-    ui.deadLeft.textContent = `Faltavam ${left} ${left === 1 ? 'maçã' : 'maçãs'} para restaurar esta terra.`;
+    const left = boss ? boss.hp : P.goal - applesEaten;
+    ui.deadLeft.textContent = boss
+      ? `O Corvo ainda aguentava ${left} ${left === 1 ? 'golpe' : 'golpes'}.`
+      : `Faltavam ${left} ${left === 1 ? 'maçã' : 'maçãs'} para restaurar esta terra.`;
     showOverlay(ui.dead);
   }
 
@@ -1256,36 +1333,173 @@
     }
   }
 
-  function updateCrow(dt) {
-    if (!crow.active) {
-      if (phaseTime < crow.nextAt) return;
-      crow.active = true;
-      crow.dir = Math.random() < 0.5 ? 1 : -1;
-      crow.row = 1 + Math.floor(Math.random() * (N - 2));
-      crow.x = crow.dir > 0 ? -32 : N * T;
-      crow.dropCol = MARGIN + Math.floor(Math.random() * (N - MARGIN * 2));
-      crow.dropped = false;
-      sfx.caw();
+  // =====================================================================
+  //  CHEFE: O CORVO CINZENTO
+  // =====================================================================
+  const BOSS_HP = { facil: 3, medio: 4, dificil: 5 };
+
+  function newBoss() {
+    const max = BOSS_HP[save.diff];
+    return { hp: max, max, mode: 'wait', t: 2500, x: 0, row: 0, dir: 1, target: null, line: null, dropCol: -1, dropped: false, cutDone: false, pos: 0, told: false };
+  }
+
+  function bossFlyStart() {
+    const b = boss;
+    b.mode = 'fly';
+    b.dir = Math.random() < 0.5 ? 1 : -1;
+    b.row = 1 + Math.floor(Math.random() * (N - 2));
+    b.x = b.dir > 0 ? -32 : N * T;
+    b.dropCol = MARGIN + Math.floor(Math.random() * (N - MARGIN * 2));
+    b.dropped = false;
+    sfx.caw();
+  }
+
+  function pickLandTarget() {
+    const head = snake[0];
+    const body = new Set(snake.map((p) => p.y * N + p.x));
+    for (let i = 0; i < 300; i++) {
+      const x = MARGIN + Math.floor(Math.random() * (N - MARGIN * 2 - 1));
+      const y = MARGIN + Math.floor(Math.random() * (N - MARGIN * 2 - 1));
+      let ok = dist(head, { x, y }) >= 4;
+      for (let dy = 0; dy < 2 && ok; dy++) {
+        for (let dx = 0; dx < 2 && ok; dx++) {
+          const k = (y + dy) * N + x + dx;
+          if (grid[k] !== 0 || portalMap.has(k) || body.has(k)) ok = false;
+        }
+      }
+      if (ok) return { x, y };
+    }
+    return null;
+  }
+
+  // depois de cruzar o céu, o Corvo escolhe: pousar (chance de bater nele) ou dar um rasante
+  function bossNextAttack() {
+    const b = boss;
+    if (b.hp < b.max && Math.random() < 0.45) {
+      const h = snake[0];
+      const axis = Math.random() < 0.5 ? 'row' : 'col';
+      b.line = { axis, idx: axis === 'row' ? h.y : h.x, rev: Math.random() < 0.5 };
+      b.mode = 'warnDive';
+      b.t = 1400 - (b.max - b.hp) * 60;
+      sfx.warn();
       return;
     }
-    crow.x += crow.dir * dt * 0.1;
-    const col = Math.floor((crow.x + 16) / T);
-    if (!crow.dropped && col === crow.dropCol) {
-      crow.dropped = true;
-      if (rotten.length < P.rotten) {
-        for (const oy of [0, 1, -1, 2, -2]) {
-          const y = (crow.row + oy + N) % N;
-          if (isFree(col, y) && dist(snake[0], { x: col, y }) >= 3) {
-            rotten.push({ x: col, y, born: now, t0: phaseTime, drop: now });
-            break;
+    const tgt = pickLandTarget();
+    if (!tgt) { b.mode = 'wait'; b.t = 800; return; }
+    b.target = tgt;
+    b.mode = 'warnLand';
+    b.t = 1400;
+  }
+
+  function updateBoss(dt) {
+    const b = boss;
+    b.t -= dt;
+    if (b.mode === 'wait') {
+      if (b.t <= 0) bossFlyStart();
+    } else if (b.mode === 'fly') {
+      b.x += b.dir * dt * (0.1 + (b.max - b.hp) * 0.015);
+      const col = Math.floor((b.x + 16) / T);
+      if (!b.dropped && col === b.dropCol) {
+        b.dropped = true;
+        if (rotten.length < P.rotten) {
+          for (const oy of [0, 1, -1, 2, -2]) {
+            const y = (b.row + oy + N) % N;
+            if (isFree(col, y) && dist(snake[0], { x: col, y }) >= 3) {
+              rotten.push({ x: col, y, born: now, t0: phaseTime, drop: now });
+              break;
+            }
           }
         }
       }
+      if (b.x < -40 || b.x > N * T + 8) bossNextAttack();
+    } else if (b.mode === 'warnLand') {
+      if (b.t <= 0) { b.mode = 'landing'; b.t = 350; }
+    } else if (b.mode === 'landing') {
+      if (b.t <= 0) {
+        b.mode = 'landed';
+        b.t = 2900 - (b.max - b.hp) * 250;
+        shake = Math.max(shake, 10);
+        burst(b.target.x + 1, b.target.y + 1.6, ['#b9a8d9', '#8a7aa8', '#ffffff'], 24, 1);
+        sfx.poof();
+        if (!b.told) {
+          b.told = true;
+          floaters.push({ x: b.target.x + 1, y: b.target.y - 0.6, text: 'Bata nele!', life: 0, max: 1500, color: '#ffd84a', size: 0.8 });
+        }
+      }
+    } else if (b.mode === 'landed') {
+      if (b.t <= 0) { b.mode = 'takeoff'; b.t = 450; sfx.caw(); }
+    } else if (b.mode === 'takeoff') {
+      if (b.t <= 0) bossFlyStart();
+    } else if (b.mode === 'warnDive') {
+      if (b.t <= 0) { b.mode = 'dive'; b.t = 750; b.cutDone = false; sfx.caw(); }
+    } else if (b.mode === 'dive') {
+      const k = 1 - Math.max(0, b.t) / 750;
+      b.pos = k * (N + 4) - 2;
+      const along = b.line.rev ? N - 1 - Math.floor(b.pos) : Math.floor(b.pos);
+      if (along >= 0 && along < N) diveHit(along);
+      if (b.t <= 0) { b.mode = 'wait'; b.t = 1300; }
+    } else if (b.mode === 'hurt') {
+      if (b.t <= 0) { b.mode = 'wait'; b.t = 1100; }
     }
-    if (crow.x < -40 || crow.x > N * T + 8) {
-      crow.active = false;
-      crow.nextAt = phaseTime + 5000 + Math.random() * 5000;
+  }
+
+  // o rasante: na cabeça é fatal; no corpo, arranca o rabo dali para trás
+  function diveHit(along) {
+    const b = boss;
+    const cx = b.line.axis === 'row' ? along : b.line.idx;
+    const cy = b.line.axis === 'row' ? b.line.idx : along;
+    const i = snake.findIndex((p) => p.x === cx && p.y === cy);
+    if (i < 0 || phaseTime < ghostUntil) return;
+    if (i === 0) {
+      if (shieldReady) { useShield(cx, cy); return; }
+      die('O rasante do Corvo te pegou!');
+      return;
     }
+    if (b.cutDone) return;
+    b.cutDone = true;
+    const n = snake.length;
+    const removed = snake.splice(i);
+    prev.splice(i);
+    removed.forEach((p, j) => debris.push({ x: p.x, y: p.y, at: now + 120 + j * 60, color: SKIN.color(i + j, n, 2) }));
+    grow = 0;
+    const pen = Math.round(BASE_POINTS * 2 * D.mult);
+    addPoints(-pen);
+    floaters.push({ x: cx + 0.5, y: cy - 0.2, text: `Bicada! -${pen}`, life: 0, max: 1200, color: '#ff3b5c', size: 0.8 });
+    shake = Math.max(shake, 14);
+    flash = { a: 0.3, color: '#ff3b5c' };
+    sfx.rotten();
+    vibrate([50, 30, 50]);
+    updateHud(true);
+  }
+
+  function bossHit() {
+    const b = boss;
+    b.hp--;
+    const cx = b.target.x + 1;
+    const cy = b.target.y + 1;
+    const gain = Math.round(100 * D.mult * (SKIN.mult || 1));
+    addPoints(gain);
+    burst(cx, cy, ['#ffffff', '#ffd84a', '#4a4768', '#2c2a44'], 50, 1.6);
+    rings.push({ x: cx, y: cy, life: 0, max: 600, color: '#ffffff', size: 3.2 });
+    rings.push({ x: cx, y: cy, life: 0, max: 900, color: RAINBOW[b.hp % RAINBOW.length], size: N * 0.6 });
+    floaters.push({ x: cx, y: cy - 0.8, text: 'POW!', life: 0, max: 1000, color: '#ffd84a', size: 1.4 });
+    floaters.push({ x: cx, y: cy + 0.4, text: '+' + gain, life: 0, max: 1000, color: '#ffffff', size: 0.8 });
+    shake = 24;
+    flash = { a: 0.5, color: '#ffffff' };
+    sfx.bossHit();
+    vibrate([80, 40, 80]);
+    if (b.hp <= 0) {
+      b.mode = 'defeated';
+      b.defeatAt = now;
+      sfx.caw();
+      updateHud(true);
+      phaseClear();
+      return;
+    }
+    b.mode = 'hurt';
+    b.t = 900;
+    showToast(b.hp === 1 ? 'Falta 1 golpe!' : `Faltam ${b.hp} golpes!`);
+    updateHud(true);
   }
 
   // =====================================================================
@@ -1300,8 +1514,17 @@
   let shownScore = 0;
   function updateHud(animate = false) {
     ui.phase.textContent = `${phaseIdx + 1}/${PHASES.length}`;
-    ui.goalText.textContent = `${Math.min(applesEaten, P.goal)}/${P.goal}`;
-    ui.goalFill.style.width = `${Math.min(100, (applesEaten / P.goal) * 100)}%`;
+    if (boss) {
+      ui.goalLabel.textContent = 'Corvo';
+      ui.goalText.textContent = '♥'.repeat(boss.hp) + '♡'.repeat(boss.max - boss.hp);
+      ui.goalFill.style.width = `${(boss.hp / boss.max) * 100}%`;
+      ui.goalFill.classList.add('boss');
+    } else {
+      ui.goalLabel.innerHTML = goalLabelHTML;
+      ui.goalText.textContent = `${Math.min(applesEaten, P.goal)}/${P.goal}`;
+      ui.goalFill.style.width = `${Math.min(100, (applesEaten / P.goal) * 100)}%`;
+      ui.goalFill.classList.remove('boss');
+    }
     ui.score.textContent = fmt(score);
     ui.shield.hidden = !SKIN.shield;
     ui.shield.classList.toggle('used', !shieldReady);
@@ -1528,7 +1751,7 @@
             rotten.splice(i, 1);
           }
         }
-        if (crow) updateCrow(dt);
+        if (boss) updateBoss(dt);
         else if (P.rotten) {
           rottenTimer -= dt;
           if (rottenTimer <= 0) {
@@ -1621,10 +1844,12 @@
 
     if (state === 'clear' && !clearShown && now - clearAt > 1700) showClearScreen();
 
-    const colorTarget = state === 'clear' || state === 'victory' ? 1 : 0.3 + 0.7 * (applesEaten / P.goal);
+    const progress = boss ? (boss.max - boss.hp) / boss.max : applesEaten / P.goal;
+    const colorTarget = state === 'clear' || state === 'victory' ? 1 : 0.3 + 0.7 * progress;
     colorAmt += (colorTarget - colorAmt) * Math.min(1, 0.05 * k);
 
     ui.readyHint.classList.toggle('show', state === 'ready');
+    syncDpadCurrent();
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
@@ -1921,19 +2146,86 @@
     }
   }
 
-  function drawCrow() {
-    if (!crow || !crow.active) return;
-    const spr = PX.big(Math.floor(now / 140) % 2 ? 'crowB' : 'crowA', PX.PAL.crow, 'crow', 2);
-    const x = Math.round(crow.x);
-    const y = crow.row * T - 12;
-    px(lctx, x + 6, crow.row * T + 14, 'rgba(0,0,0,0.3)', 20, 2);
-    if (crow.dir > 0) {
-      lctx.save();
-      lctx.translate(x + spr.width, y);
-      lctx.scale(-1, 1);
-      lctx.drawImage(spr, 0, 0);
-      lctx.restore();
-    } else lctx.drawImage(spr, x, y);
+  function drawBoss() {
+    if (!boss) return;
+    const b = boss;
+    const g = lctx;
+    const spr = PX.big(Math.floor(now / (b.mode === 'dive' ? 70 : 140)) % 2 ? 'crowB' : 'crowA', PX.PAL.crow, 'crow', 3);
+    const put = (x, y, flip, alpha) => {
+      g.globalAlpha = alpha === undefined ? 1 : alpha;
+      if (flip) { g.save(); g.translate(Math.round(x) + spr.width, Math.round(y)); g.scale(-1, 1); g.drawImage(spr, 0, 0); g.restore(); }
+      else g.drawImage(spr, Math.round(x), Math.round(y));
+      g.globalAlpha = 1;
+    };
+    const tx = b.target ? b.target.x * T : 0;
+    const ty = b.target ? b.target.y * T : 0;
+
+    if (b.mode === 'fly') {
+      px(g, b.x + 8, b.row * T + 18, 'rgba(0,0,0,0.3)', 32, 3);
+      put(b.x - 8, b.row * T - 18, b.dir > 0);
+    } else if (b.mode === 'warnLand') {
+      // sombra crescendo e cantos piscando onde ele vai pousar
+      const k = 1 - b.t / 1400;
+      const w = Math.round(8 + k * 22);
+      px(g, tx + 16 - w / 2, ty + 22, 'rgba(0,0,0,0.35)', w, 4);
+      if (Math.floor(now / 140) % 2) {
+        const c = '#ffd84a';
+        px(g, tx, ty, c, 7, 2); px(g, tx, ty, c, 2, 7);
+        px(g, tx + 25, ty, c, 7, 2); px(g, tx + 30, ty, c, 2, 7);
+        px(g, tx, ty + 30, c, 7, 2); px(g, tx, ty + 25, c, 2, 7);
+        px(g, tx + 25, ty + 30, c, 7, 2); px(g, tx + 30, ty + 25, c, 2, 7);
+      }
+    } else if (b.mode === 'landing') {
+      const k = 1 - b.t / 350;
+      px(g, tx + 4, ty + 26, 'rgba(0,0,0,0.4)', 24, 4);
+      put(tx - 8, ty + 2 - (1 - k) * 90, false);
+    } else if (b.mode === 'landed' || b.mode === 'hurt') {
+      const hurt = b.mode === 'hurt';
+      const rise = hurt ? (1 - b.t / 900) * 70 : 0;
+      px(g, tx + 4, ty + 26, 'rgba(0,0,0,0.4)', 24, 4);
+      put(tx - 8 + (hurt ? Math.round(Math.sin(now / 30) * 2) : 0), ty + 2 - rise, false, hurt && Math.floor(now / 60) % 2 ? 0.4 : 1);
+      // estrelinhas de tonto em volta da cabeça
+      for (let i = 0; i < 3; i++) {
+        const a = now / 200 + (i * Math.PI * 2) / 3;
+        px(g, tx + 14 + Math.round(Math.cos(a) * 16), ty - 4 - rise + Math.round(Math.sin(a) * 5), '#ffd84a', 3, 3);
+      }
+      // "!" vermelho quando ele está quase levantando voo
+      if (!hurt && b.t < 900 && Math.floor(now / 100) % 2) { px(g, tx + 14, ty - 12, OUT, 4, 12); px(g, tx + 15, ty - 11, '#ff3b5c', 2, 6); px(g, tx + 15, ty - 3, '#ff3b5c', 2, 2); }
+    } else if (b.mode === 'takeoff') {
+      const k = 1 - b.t / 450;
+      put(tx - 8, ty + 2 - k * 120, false);
+    } else if (b.mode === 'warnDive' || b.mode === 'dive') {
+      const L = b.line;
+      const on = b.mode === 'dive' || Math.floor(now / 110) % 2;
+      g.globalAlpha = b.mode === 'dive' ? 0.35 : on ? 0.42 : 0.18;
+      g.fillStyle = '#ff3b5c';
+      if (L.axis === 'row') g.fillRect(0, L.idx * T, N * T, T);
+      else g.fillRect(L.idx * T, 0, T, N * T);
+      g.globalAlpha = 1;
+      if (b.mode === 'warnDive' && on) {
+        const marks = L.axis === 'row' ? [[2, L.idx * T + 2], [N * T - 6, L.idx * T + 2]] : [[L.idx * T + 6, 2], [L.idx * T + 6, N * T - 14]];
+        marks.forEach(([x, y]) => { px(g, x, y, OUT, 4, 12); px(g, x + 1, y + 1, '#ffffff', 2, 6); px(g, x + 1, y + 9, '#ffffff', 2, 2); });
+      }
+      if (b.mode === 'dive') {
+        const along = (L.rev ? N - 1 - b.pos : b.pos) * T;
+        const forward = !L.rev;
+        for (let k = 3; k >= 0; k--) {
+          const back = (forward ? -1 : 1) * k * 10;
+          if (L.axis === 'row') put(along - 16 + back, L.idx * T - 8, forward, k ? 0.25 : 1);
+          else put(L.idx * T - 16, along - 8 + back, forward, k ? 0.25 : 1);
+        }
+      }
+    } else if (b.mode === 'defeated') {
+      const k = Math.min(1, (now - b.defeatAt) / 1600);
+      g.save();
+      g.translate(tx + 16, ty + 18 + k * k * 260);
+      g.rotate(k * 12);
+      g.globalAlpha = 1 - k * 0.6;
+      g.drawImage(spr, -24, -15);
+      g.restore();
+      g.globalAlpha = 1;
+      if (Math.random() < 0.4) particles.push({ x: b.target.x + 1, y: b.target.y + 1 + k * 16, vx: (Math.random() - 0.5) * 0.1, vy: -0.05, life: 0, max: 600, color: '#8a7aa8', r: 2, g: 0.004 });
+    }
   }
 
   // seta "você vai aparecer aqui" quando a cobra está chegando numa borda
@@ -2025,7 +2317,7 @@
     if (buffs.magnet && pts[0] && !dead) PX.ring(g, pts[0].x + 7.5, pts[0].y + 7.5, 14 + (Math.floor(now / 100) % 3) * 6, 'rgba(255,59,92,0.7)');
 
     drawEdgeHint();
-    drawCrow();
+    drawBoss();
 
     for (const r of rings) {
       const p = r.life / r.max;
@@ -2106,6 +2398,7 @@
   if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
   else window.addEventListener('resize', resize);
   syncAudioButtons();
+  applyDpad();
   setupPhase(Math.min(save.selected[save.diff], save.progress[save.diff] - 1));
 
   // tela de título -> história (só na primeira vez) -> menu

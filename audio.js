@@ -110,6 +110,7 @@
     deny() { tone(180, 0.12, 'pulse', 0.07, 120); },
     blip() { tone(1500 + Math.random() * 300, 0.018, 'thin', 0.025); },
     warn() { tone(1760, 0.04, 'thin', 0.045); },
+    bossHit() { tone(160, 0.3, 'square', 0.14, 50); hit2(0.25, 0.2); arp([1047, 1319, 1568], 0.05, 'thin', 0.06); },
   };
 
   function hit2(dur, vol) {
