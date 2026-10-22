@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cobrinha</title>
+  <meta name="description" content="Jogo da cobrinha em pixel art: devolva as cores às 10 terras roubadas pelo Corvo Cinzento.">
+  <meta name="theme-color" content="#140a26">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'><path fill='%23ff2d55' d='M1 2h6v4H6v1H2V6H1z'/><path fill='%236b3b1f' d='M3 0h1v2H3z'/><path fill='%234fe06b' d='M4 0h2v1H4z'/><path fill='%23ffd0d8' d='M1 3h2v1H2v1H1z'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Mostra na tela qualquer erro (escrito em JavaScript antigo para funcionar em qualquer navegador)
+    (function () {
+      var shown = 0;
+      function report(msg) {
+        if (shown++ > 3) return;
+        var box = document.getElementById('errbox');
+        if (!box) {
+          box = document.createElement('div');
+          box.id = 'errbox';
+          box.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#b00020;color:#fff;font:14px/1.4 monospace;padding:12px;white-space:pre-wrap;word-break:break-word';
+          box.textContent = 'Erro no jogo (mande um print disso):\n' + navigator.userAgent + '\n';
+          (document.body || document.documentElement).appendChild(box);
+        }
+        box.textContent += '\n' + msg;
+      }
+      window.addEventListener('error', function (e) {
+        if (e.target && e.target !== window && (e.target.src || e.target.href)) {
+          report('Não carregou: ' + (e.target.src || e.target.href));
+        } else {
+          report((e.message || 'erro') + ' (' + (e.filename || '').split('/').pop() + ':' + (e.lineno || '?') + ')');
+        }
+      }, true);
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (!window.Cobra || !window.Cobra.story) report('Os scripts do jogo não iniciaram.');
+        }, 1500);
+      });
+    })();
+  </script>
+</head>
+<body>
+  <main class="app">
+    <header class="hud">
+      <div class="pill"><span class="label">Terra</span><span id="phase" class="value">1/10</span></div>
+      <div class="pill goal">
+        <div class="goal-top"><span class="label"><img data-apple-icon alt="" class="icon"> Meta</span><span id="goalText" class="value">0/5</span></div>
+        <div class="bar"><div id="goalFill" class="fill"></div></div>
+      </div>
+      <div class="pill"><span class="label">Pontos</span><span id="score" class="value">0</span></div>
+      <span id="shield" class="shield" title="Escudo do Dragão" hidden>🛡️</span>
+      <button id="pauseBtn" class="icon-btn" type="button" aria-label="Pausar" data-silent="1">⏸</button>
+      <button id="musicBtn" class="icon-btn" type="button" aria-label="Ligar ou desligar a música" data-silent="1">🎶</button>
+      <button id="mute" class="icon-btn" type="button" aria-label="Ligar ou desligar os sons" data-silent="1">🔊</button>
+    </header>
+
+    <div class="stage" id="stage">
+      <canvas id="game" aria-label="Tabuleiro do jogo"></canvas>
+      <div id="buffs" class="buffs"></div>
+
+      <div id="readyHint" class="ready-hint">Escolha uma direção<span>setas, WASD ou deslize</span></div>
+
+      <section id="intro" class="overlay soft">
+        <div class="card">
+          <p class="kicker" id="introKicker">Terra 1 de 10</p>
+          <h2 class="title" id="introName">Colina do Pomar</h2>
+          <div class="chips">
+            <span class="chip big" id="introGoal">Meta: 5 maçãs</span>
+            <span class="chip" id="introSize">Mapa 10×10</span>
+          </div>
+          <p class="news" id="introNews"></p>
+          <div class="pw-list" id="introPowers"></div>
+          <button class="btn" type="button" id="introGo" style="--c:#6dff8a;--d:#25a548">Começar</button>
+          <p class="keyhint">Espaço ou Enter</p>
+        </div>
+      </section>
+
+      <section id="pause" class="overlay">
+        <div class="card">
+          <h2 class="title">Pausado</h2>
+          <div class="actions">
+            <button class="btn" type="button" id="resume" style="--c:#4af0ff;--d:#0f9fb8">Continuar</button>
+            <button class="btn" type="button" data-menu style="--c:#ffffff;--d:#b9a8d9">Menu</button>
+          </div>
+          <p class="keyhint">Espaço para continuar</p>
+        </div>
+      </section>
+
+      <section id="dead" class="overlay">
+        <div class="card">
+          <h2 class="title">Ops!</h2>
+          <p class="detail" id="deadReason"></p>
+          <p class="detail" id="deadLeft"></p>
+          <div class="actions">
+            <button class="btn" type="button" id="retry" style="--c:#6dff8a;--d:#25a548">Tentar de novo</button>
+            <button class="btn" type="button" data-menu style="--c:#ffffff;--d:#b9a8d9">Menu</button>
+          </div>
+          <p class="keyhint">Espaço para tentar de novo</p>
+        </div>
+      </section>
+
+      <section id="clear" class="overlay">
+        <div class="card">
+          <p class="kicker" id="clearKicker">Terra 1 de 10</p>
+          <h2 class="title">Cores restauradas!</h2>
+          <p class="final" id="clearScore">0</p>
+          <p class="detail" id="clearBonus"></p>
+          <div class="actions">
+            <button class="btn" type="button" id="next" style="--c:#6dff8a;--d:#25a548">Próxima terra ▶</button>
+            <button class="btn" type="button" data-menu style="--c:#ffffff;--d:#b9a8d9">Menu</button>
+          </div>
+          <p class="keyhint">Espaço para continuar</p>
+        </div>
+      </section>
+
+      <section id="victory" class="overlay">
+        <div class="card">
+          <p class="trophy">🏆</p>
+          <h2 class="title">Você zerou o jogo!</h2>
+          <p class="final" id="victoryScore">0</p>
+          <p class="detail" id="victoryText"></p>
+          <div class="actions">
+            <button class="btn" type="button" data-menu style="--c:#ffd84a;--d:#d29a00">Voltar ao menu</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast"></div>
+    </div>
+
+    <p class="hint">Setas/WASD ou deslize · as bordas são portais · Espaço pausa</p>
+  </main>
+
+  <section id="menu" class="menu" aria-label="Menu do jogo">
+    <div class="menu-inner">
+      <h1 class="logo">Cobrinha</h1>
+      <p class="subtitle">A Grande Maçã</p>
+
+      <div class="wallet">
+        <div class="wallet-top"><span>Pontos acumulados</span><b id="total">0</b></div>
+        <div class="bar"><div id="nextFill" class="fill"></div></div>
+        <p id="nextText" class="small"></p>
+      </div>
+
+      <h2 class="section">Sua cobrinha</h2>
+      <div class="skins" id="skins"></div>
+
+      <h2 class="section">Dificuldade</h2>
+      <div class="diffs" id="diffs"></div>
+
+      <h2 class="section">Terras</h2>
+      <div class="phases" id="phases"></div>
+
+      <button class="btn play" type="button" id="play" style="--c:#6dff8a;--d:#25a548">▶ Jogar</button>
+
+      <div class="settings">
+        <button class="mini" type="button" id="sfxToggle">Sons: ligados</button>
+        <button class="mini" type="button" id="musicToggle">Música: ligada</button>
+        <button class="mini" type="button" id="watchStory">Ver a história</button>
+      </div>
+
+      <p class="save-line">
+        Progresso salvo automaticamente neste navegador ·
+        <button class="link" type="button" id="exportSave">Exportar save</button> ·
+        <button class="link" type="button" id="importSave">Importar save</button>
+      </p>
+      <p class="save-line">Setas para navegar · Enter ou Espaço para escolher</p>
+    </div>
+  </section>
+
+  <section id="story" class="story" aria-label="História">
+    <div class="story-stage">
+      <canvas id="storyWorld"></canvas>
+      <canvas id="storyFx"></canvas>
+    </div>
+    <div id="storyLogo" class="story-logo">
+      <h1 class="logo">Cobrinha</h1>
+      <p class="subtitle">A Grande Maçã</p>
+    </div>
+    <p id="storyPress" class="story-press">Aperte espaço ou toque para começar</p>
+    <div id="storyBox" class="story-box" hidden>
+      <p id="storyText"></p>
+      <span class="story-next">▼</span>
+    </div>
+    <button id="storySkip" class="story-skip" type="button" data-silent="1">Pular ▶▶</button>
+  </section>
+
+  <script src="pixel.js" defer></script>
+  <script src="audio.js" defer></script>
+  <script src="story.js" defer></script>
+  <script src="game.js" defer></script>
+</body>
+</html>
