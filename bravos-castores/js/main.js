@@ -129,6 +129,34 @@ function voltarAoMenu() {
   $('#tela-menu').classList.remove('oculta');
 }
 
+// ---------------- tela de carregamento ----------------
+const DICAS_CARREGANDO = [
+  'Ataques batem primeiro na Muralha. O que sobra vai no Castelo.',
+  'Cada gerador produz 1 recurso da sua cor no começo da sua vez.',
+  'Sem carta boa? Arraste uma para baixo e descarte de graça.',
+  'O Lança-Torres é a única carta que ignora a Muralha.',
+  'Clique com o botão direito numa carta para vê-la grande.',
+  'Chegue a 100 de Castelo ou derrube o do adversário a 0.',
+];
+let dicaAtual = Math.floor(Math.random() * DICAS_CARREGANDO.length);
+
+function textoCarregando(t) { $('#carregando .carregando-texto').textContent = t; }
+
+/** Mostra a capa com o logo enquanto a arena 3D carrega. Devolve a função que esconde. */
+function mostrarCarregando() {
+  const el = $('#carregando');
+  dicaAtual = (dicaAtual + 1) % DICAS_CARREGANDO.length;
+  el.querySelector('.carregando-dica').textContent = DICAS_CARREGANDO[dicaAtual];
+  textoCarregando(arena ? 'Preparando a arena…' : 'Carregando a arena 3D…');
+  el.classList.remove('oculta', 'saindo');
+  return async () => {
+    el.classList.add('saindo');
+    await esperar(450);
+    el.classList.add('oculta');
+    el.classList.remove('saindo');
+  };
+}
+
 // ---------------- partida ----------------
 async function comecarJogo(novoModo) {
   modo = novoModo;
@@ -149,9 +177,14 @@ async function comecarJogo(novoModo) {
   $('#mao').innerHTML = '';
   ajustarEscala();
 
+  const fimCarregando = mostrarCarregando();
+  const minimo = esperar(1200);
   await arenaPronta;
+  textoCarregando('Erguendo os castelos…');
   if (arena) await Promise.race([arena.resetar(estado), esperar(3500)]);
   else mostrarSemArena(estado);
+  await minimo;
+  await fimCarregando();
   if (estado !== meuEstado) return; // voltou ao menu ou recomeçou no meio
   if (modo === 'ia') renderizarTudo(); // mão aparece travada enquanto a faixa passa
   await faixaDeTurno(`Vez de ${estado.jogadores[estado.vez].nome}`, estado.vez);

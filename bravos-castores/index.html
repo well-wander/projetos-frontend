@@ -56,6 +56,8 @@
   <!-- ============ JOGO ============ -->
   <section id="tela-jogo" class="tela oculta">
     <div class="moldura-img" aria-hidden="true"></div>
+    <div class="moldura-arena" aria-hidden="true"></div>
+    <div class="moldura-base" aria-hidden="true"></div>
     <header class="topo">
       <div class="flamula-topo" aria-hidden="true"></div>
       <button class="btn quadrado" id="btn-menu" title="Voltar ao menu">☰</button>
@@ -89,6 +91,17 @@
     </footer>
 
   </section>
+
+  <!-- ============ CARREGANDO ============ -->
+  <div id="carregando" class="carregando oculta" role="status" aria-live="polite">
+    <div class="carregando-capa" aria-hidden="true"></div>
+    <div class="carregando-caixa">
+      <img src="img/logo.png" alt="Bravos Castores" class="carregando-logo">
+      <div class="carregando-barra" aria-hidden="true"><span></span></div>
+      <p class="carregando-texto contorno">Carregando a arena 3D…</p>
+      <p class="carregando-dica"></p>
+    </div>
+  </div>
 
   <!-- ============ OVERLAYS ============ -->
   <div id="overlay-vez" class="overlay oculta">

@@ -1023,3 +1023,179 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   #tela-jogo .btn-dica:hover:not(:disabled) { background: rgba(255, 255, 255, .15); filter: none; }
 }
 @keyframes produzPalco { 50% { box-shadow: 0 0 0 3px #ffe066, 0 0 18px 4px rgba(255, 212, 59, .8); } }
+
+/* ===================== Tela de carregamento (capa enquanto a arena 3D carrega) ===================== */
+.carregando {
+  position: fixed; inset: 0; z-index: 90; overflow: hidden;
+  display: grid; place-items: center; background: #1b120b;
+  transition: opacity .45s ease;
+}
+.carregando.saindo { opacity: 0; pointer-events: none; }
+.carregando-capa {
+  position: absolute; inset: -3%;
+  background: linear-gradient(rgba(20, 12, 6, .25), rgba(20, 12, 6, .7)), url(img/capa.jpg) center 40% / cover;
+  animation: capaRespira 26s ease-in-out infinite alternate;
+}
+.carregando-caixa {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px;
+  width: min(560px, 86vw); text-align: center;
+}
+.carregando-logo { width: min(440px, 76vw); filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .6)); }
+.carregando-barra {
+  width: 78%; height: 16px; border-radius: 999px; overflow: hidden;
+  background: #2b1a10; border: 3px solid #1b120b; box-shadow: 0 0 0 2px #e9c06c, 0 6px 12px rgba(0, 0, 0, .5);
+}
+.carregando-barra span {
+  display: block; width: 40%; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #ffe680, #f2c230);
+  animation: carregandoVai 1.3s ease-in-out infinite;
+}
+@keyframes carregandoVai { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+.carregando-texto { margin: 0; font-family: var(--fonte-titulo); font-size: clamp(20px, 2.2vw, 30px); letter-spacing: 1px; }
+.carregando-dica {
+  margin: 0; padding: .55em 1em; border-radius: 12px; max-width: 100%;
+  background: rgba(27, 18, 11, .82); border: 2px solid #e9c06c; color: #f7edd5;
+  font-size: clamp(14px, 1.2vw, 18px); line-height: 1.35;
+}
+.carregando-dica::before { content: 'Dica: '; font-weight: 800; color: #ffd43b; }
+
+/* =====================================================================
+   Tema v3 no celular: moldura em retrato (1024 x 1536) cortada em três.
+   Topo (viga + painéis) e prateleira mantêm a proporção; a moldura da
+   arena é um border-image que estica para ocupar a altura que sobrar.
+   Coordenadas em pixels da imagem 1024 de largura, × --u.
+   ===================================================================== */
+.moldura-arena, .moldura-base { display: none; }
+
+@media (max-aspect-ratio: 119/100) {
+  body { background: var(--tex-escura) center / 420px auto, #24160b; }
+
+  #tela-jogo {
+    --palco-w: min(100vw, 68vh);
+    --u: calc(var(--palco-w) / 1024);
+    --carta-w: calc(280 * var(--u));
+    --carta-h: calc(var(--carta-w) * 1.38);
+    inset: 0; margin: 0 auto; width: var(--palco-w); height: 100vh; height: 100dvh;
+    display: block; padding: 0; gap: 0; overflow: hidden;
+    background: #2a1a0e; box-shadow: 0 0 40px rgba(0, 0, 0, .8);
+  }
+  @supports (height: 100dvh) { #tela-jogo { --palco-w: min(100vw, 68dvh); } }
+
+  #tela-jogo .moldura-img {
+    display: block; position: absolute; left: 0; top: 0; width: 100%; height: calc(796 * var(--u));
+    z-index: 2; pointer-events: none; background: url(img/moldura-retrato-topo.webp) 0 0 / 100% 100% no-repeat;
+  }
+  #tela-jogo .moldura-arena {
+    display: block; position: absolute; left: 0; right: 0; top: calc(796 * var(--u)); bottom: calc(276 * var(--u));
+    z-index: 2; pointer-events: none; box-sizing: border-box;
+    border: calc(76 * var(--u)) solid transparent;
+    border-image: url(img/moldura-retrato-arena.webp) 76 round;
+  }
+  #tela-jogo .moldura-base {
+    display: block; position: absolute; left: 0; bottom: 0; width: 100%; height: calc(276 * var(--u));
+    z-index: 2; pointer-events: none; background: url(img/moldura-retrato-base.webp) 0 0 / 100% 100% no-repeat;
+  }
+
+  /* posicionamento em unidades da imagem */
+  #tela-jogo :is(.topo > :not(.topo-dir), .topo-dir > *, .painel, .avatar, .nome, .stat, .mao) {
+    position: absolute; margin: 0; right: auto; bottom: auto;
+    left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u));
+    width: calc(var(--w) * var(--u)); height: calc(var(--h) * var(--u));
+  }
+  #tela-jogo :is(.mesa, .topo-dir, .painel-cabeca, .defesa, .grupo) { display: contents; }
+  #tela-jogo :is(.flamula-topo, .flamula, .ajuda-arraste) { display: none; }
+
+  /* ---- topo ---- */
+  #tela-jogo .topo {
+    position: absolute; left: 0; top: 0; width: 100%; height: calc(100 * var(--u)); z-index: 5;
+    margin: 0; padding: 0; display: block; background: none; border: 0; box-shadow: none;
+  }
+  #tela-jogo .topo :is(.btn, .placa) {
+    background: none; border: 0; box-shadow: none; padding: 0; border-radius: calc(12 * var(--u));
+    display: flex; align-items: center; justify-content: center; white-space: nowrap; min-width: 0;
+  }
+  #tela-jogo #btn-menu { --x: 20; --y: 12; --w: 86; --h: 78; }
+  #tela-jogo #turno { --x: 124; --y: 12; --w: 194; --h: 78; display: flex; }
+  #tela-jogo #vez { --x: 338; --y: 12; --w: 348; --h: 78; }
+  #tela-jogo #btn-musica { --x: 706; --y: 12; --w: 91; --h: 78; }
+  #tela-jogo #btn-som { --x: 812; --y: 12; --w: 91; --h: 78; }
+  #tela-jogo #btn-ajuda { --x: 917; --y: 12; --w: 89; --h: 78; }
+  #tela-jogo .btn.quadrado { font-size: calc(40 * var(--u)); color: #3b2412; }
+  #tela-jogo #turno { font-size: calc(36 * var(--u)); color: #3b2412; letter-spacing: 1px; text-shadow: 0 2px 0 rgba(255, 240, 200, .55); }
+  #tela-jogo #vez { font-size: calc(30 * var(--u)); padding: 0 calc(22 * var(--u)); gap: calc(8 * var(--u)); letter-spacing: .5px; }
+  #tela-jogo #vez > span { overflow: hidden; text-overflow: ellipsis; }
+  #tela-jogo #vez[data-jogador="0"] { background: url(img/placa-vez-retrato-verde.webp) 0 0 / 100% 100%; }
+  #tela-jogo #vez[data-jogador="1"] { background: url(img/placa-vez-retrato-vermelha.webp) 0 0 / 100% 100%; }
+
+  /* ---- painéis ---- */
+  #tela-jogo .painel {
+    --x: 8; --y: 100; --w: 500; --h: 690; z-index: 3;
+    display: block; padding: 0; border: 0; border-radius: calc(20 * var(--u)); overflow: visible;
+    background: none; box-shadow: none; font-size: calc(28 * var(--u));
+  }
+  #tela-jogo #painel-1 { --x: 518; }
+  #tela-jogo .painel.ativo { box-shadow: 0 0 0 calc(5 * var(--u)) #ffd43b, 0 0 calc(30 * var(--u)) calc(8 * var(--u)) rgba(255, 212, 59, .55); }
+  #tela-jogo .avatar {
+    --x: 46; --y: 49; --w: 88; --h: 88; border: 0; box-shadow: none; font-size: calc(46 * var(--u));
+    background: radial-gradient(#a6dc8f, #4c9a40);
+  }
+  #tela-jogo #painel-1 .avatar { background: radial-gradient(#f2a197, #c0453a); }
+  #tela-jogo .nome {
+    --x: 152; --y: 65; --w: 236; --h: 73;
+    display: flex; flex-direction: column; justify-content: center; padding: 0 calc(10 * var(--u));
+    font-size: calc(32 * var(--u)); color: #3b2412; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; overflow: hidden;
+  }
+  #tela-jogo .nome small { display: none; }
+
+  #tela-jogo .stat {
+    display: grid; grid-template-columns: calc(46 * var(--u)) minmax(0, 1fr) auto; align-items: center; gap: calc(8 * var(--u));
+    padding: 0 calc(10 * var(--u)) 0 calc(8 * var(--u)); border: 0; border-radius: calc(10 * var(--u));
+    background: none; box-shadow: none; font-size: calc(30 * var(--u));
+  }
+  #tela-jogo .stat .ico img { width: calc(44 * var(--u)); height: calc(44 * var(--u)); }
+  #tela-jogo .stat .rot { font-family: var(--fonte-titulo); font-weight: 400; letter-spacing: .5px; color: #3b2412; }
+  #tela-jogo .stat .val {
+    display: flex; align-items: center; justify-content: center; padding: 0; min-width: 0; background: none; box-shadow: none;
+    font-size: calc(36 * var(--u)); color: #fff; text-shadow: 0 2px 0 #000;
+  }
+  #tela-jogo .stat.destaque .val { width: calc(68 * var(--u)); height: calc(42 * var(--u)); padding-top: calc(4 * var(--u)); }
+  #tela-jogo .stat.recurso .val { width: calc(80 * var(--u)); height: calc(44 * var(--u)); padding-top: calc(4 * var(--u)); }
+  #tela-jogo .stat.recurso { padding-right: calc(13 * var(--u)); }
+  #tela-jogo .stat.gerador { padding-right: calc(18 * var(--u)); }
+  #tela-jogo .stat.gerador .rot small { display: none; }
+  #tela-jogo .stat.gerador .rot, #tela-jogo .stat.gerador .val { color: #fff; }
+  #tela-jogo .stat.gerador.produzindo { animation: produzPalco .9s ease-in-out 2; }
+
+  #tela-jogo [data-linha="castelo"] { --x: 40; --y: 155; --w: 418; --h: 55; }
+  #tela-jogo [data-linha="muralha"] { --x: 40; --y: 222; --w: 418; --h: 55; }
+  #tela-jogo [data-linha="construtores"] { --x: 42; --y: 289; --w: 416; --h: 47; }
+  #tela-jogo [data-linha="madeira"] { --x: 50; --y: 336; --w: 400; --h: 62; }
+  #tela-jogo [data-linha="soldados"] { --x: 41; --y: 410; --w: 417; --h: 50; }
+  #tela-jogo [data-linha="armas"] { --x: 50; --y: 460; --w: 400; --h: 60; }
+  #tela-jogo [data-linha="magos"] { --x: 42; --y: 532; --w: 415; --h: 48; }
+  #tela-jogo [data-linha="cristais"] { --x: 50; --y: 580; --w: 400; --h: 65; }
+
+  /* ---- arena: estica entre os painéis e a prateleira ---- */
+  #tela-jogo .cenario {
+    position: absolute; margin: 0; z-index: 1;
+    left: calc(33 * var(--u)); right: calc(34 * var(--u));
+    top: calc(826 * var(--u)); bottom: calc(306 * var(--u));
+    border: 0; border-radius: 0; box-shadow: none;
+    background: linear-gradient(#6fb6ea, #cfe9f7 55%, #74b345 55%);
+  }
+  #tela-jogo .log { top: calc(20 * var(--u)); max-width: 88%; }
+  body[data-zona="jogar"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(16 * var(--u)) #5dff6c, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(93, 255, 108, .45); }
+  body[data-zona="negado"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(16 * var(--u)) #ff5a4a, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(255, 90, 74, .4); }
+
+  /* ---- prateleira da mão ---- */
+  #tela-jogo .mao-area {
+    position: absolute; left: 0; bottom: 0; width: 100%; height: calc(276 * var(--u));
+    margin: 0; z-index: 6; background: none;
+  }
+  #tela-jogo .mao { --x: 16; --y: 0; --w: 992; --h: 276; }
+  #tela-jogo .mao .carta { bottom: calc(var(--carta-h) * -0.2); }
+  #tela-jogo .btn-dica {
+    position: absolute; left: auto; right: calc(54 * var(--u)); top: calc(-118 * var(--u)); bottom: auto;
+    height: calc(84 * var(--u)); padding: 0 calc(26 * var(--u)); font-size: calc(36 * var(--u));
+  }
+}
