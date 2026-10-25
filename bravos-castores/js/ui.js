@@ -35,15 +35,25 @@ export function criarElementoCarta(id, idx) {
       </div>
     </div>
     <div class="custo" title="Custo: ${c.custo} de ${NOME[recurso]}"><span>${c.custo}</span></div>
-    <div class="selo-recurso" title="Paga com ${NOME[recurso]}"><img src="${ICONE_PX[recurso]}" alt="${NOME[recurso]}" draggable="false"></div>
     <div class="cadeado" title="Recursos insuficientes">🔒</div>`;
   return el;
 }
 
 export function renderizarMao(estado, podeJogarFn, minhaVez) {
   const mao = $('#mao');
-  mao.innerHTML = '';
   const jogador = estado.jogadores[estado.vez];
+  // mesmas cartas na mesma ordem: só atualiza o estado, sem refazer (e sem repetir a animação de entrada)
+  const atuais = [...mao.querySelectorAll('.carta')];
+  if (atuais.length === jogador.mao.length && atuais.every((el, i) => el.dataset.id === jogador.mao[i])) {
+    atuais.forEach((el, idx) => {
+      const pode = podeJogarFn(idx);
+      el.classList.toggle('jogavel', pode);
+      el.classList.toggle('bloqueada', !pode);
+      el.classList.toggle('espera', !minhaVez);
+    });
+    return;
+  }
+  mao.innerHTML = '';
   jogador.mao.forEach((id, idx) => {
     const el = criarElementoCarta(id, idx);
     el.classList.add(podeJogarFn(idx) ? 'jogavel' : 'bloqueada');

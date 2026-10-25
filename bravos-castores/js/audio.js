@@ -98,6 +98,31 @@ const SONS = {
   vitoria: (t) => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => nota(f, t + i * 0.14, 0.28, { vol: 0.2 })); },
   derrota: (t) => { [440, 415, 392, 311].forEach((f, i) => nota(f, t + i * 0.26, 0.42, { tipo: 'sawtooth', vol: 0.15, filtro: 1500 })); },
   raio: (t) => { chiado(t, 0.5, { vol: 0.5, freq: 3500, tipo: 'highpass' }); chiado(t + 0.05, 0.9, { vol: 0.35, freq: 400 }); nota(60, t, 0.7, { tipo: 'sawtooth', vol: 0.18, deslize: 0.5, filtro: 600 }); },
+  // construção: marteladas e serrote
+  carpintaria: (t) => {
+    for (let i = 0; i < 3; i++) {
+      const tt = t + i * 0.22;
+      chiado(tt, 0.06, { vol: 0.5, freq: 2400, tipo: 'bandpass' });
+      nota(150 + i * 12, tt, 0.12, { tipo: 'sine', vol: 0.35, deslize: 0.6, ataque: 0.002 });
+    }
+    // serrote: chiado modulado indo e voltando
+    for (let i = 0; i < 4; i++) chiado(t + 0.75 + i * 0.13, 0.11, { vol: 0.22, freq: 3200 - (i % 2) * 900, tipo: 'bandpass' });
+  },
+  // batalha: espadas batendo e metal vibrando
+  metal: (t) => {
+    const parciais = [523, 1347, 2210, 3470, 4980];
+    [[1, 0], [0.85, 0.28]].forEach(([fator, atraso]) => {
+      parciais.forEach((f, i) => nota(f * fator, t + atraso, 0.7 - i * 0.09, { tipo: 'sine', vol: 0.12 / (i + 1), ataque: 0.002 }));
+      chiado(t + atraso, 0.08, { vol: 0.35, freq: 5000, tipo: 'highpass' });
+    });
+    chiado(t + 0.6, 0.35, { vol: 0.12, freq: 1500, tipo: 'bandpass' });
+  },
+  // magia: estalo elétrico e cintilar
+  feitico: (t) => {
+    nota(1800, t, 0.45, { tipo: 'sawtooth', vol: 0.08, deslize: 0.15, filtro: 3000 });
+    for (let i = 0; i < 7; i++) chiado(t + 0.05 + Math.random() * 0.4, 0.03, { vol: 0.3, freq: 6000, tipo: 'highpass' });
+    [1320, 1760, 2093, 2637].forEach((f, i) => nota(f, t + 0.35 + i * 0.06, 0.35, { tipo: 'sine', vol: 0.09 }));
+  },
   nada: () => {},
 };
 

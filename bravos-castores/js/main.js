@@ -240,7 +240,7 @@ async function executar(acao, idx, deRetangulo = null) {
     tocar(somDaCarta(carta));
     let numeros = null;
     const aoImpacto = () => { if (!numeros) numeros = animarValores(depoisDoEfeito, { duracao: 1400 }); };
-    if (arena) await arena.atualizar(depoisDoEfeito, { ...efeitoVisual(carta, quem), aoImpacto });
+    if (arena) await arena.atualizar(depoisDoEfeito, { ...efeitoVisual(carta, quem), aoImpacto, carta: carta.id, quem });
     else mostrarSemArena(depoisDoEfeito);
     aoImpacto();
     await numeros;
@@ -273,14 +273,10 @@ async function executar(acao, idx, deRetangulo = null) {
 }
 
 function somDaCarta(carta) {
-  const ops = carta.efeitos.map((e) => e.op);
-  if (ops.includes('maldicao')) return 'magia';
-  if (ops.includes('roubo')) return 'roubo';
-  if (ehAtaque(carta)) return 'nada';
-  if (carta.efeitos.some((e) => e.op === 'mod' && e.quem === 'ele')) return carta.cor === 'magia' ? 'magia' : 'roubo';
-  if (carta.efeitos.some((e) => ['construtores', 'soldados', 'magos'].includes(e.campo))) return 'trabalhador';
-  if (carta.cor === 'magia') return 'magia';
-  return 'construir';
+  // cada pilar tem seu som: carpintaria (verde), metal e espadas (vermelho), estalos de magia (azul)
+  if (carta.cor === 'construcao') return 'carpintaria';
+  if (carta.cor === 'batalha') return carta.efeitos.some((e) => e.op === 'roubo') ? 'roubo' : 'metal';
+  return 'feitico';
 }
 
 function jogadaDoBot() {

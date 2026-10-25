@@ -257,4 +257,8 @@ function cristais() {
 
 const DESENHOS = { castelo, muralha, construtores, madeira, soldados, armas, magos, cristais };
 
-export const ICONE_PX = Object.fromEntries(Object.entries(DESENHOS).map(([k, fn]) => [k, paraURL(contorno(fn()))]));
+// Versão em pixel art (reserva, caso as imagens não carreguem).
+export const ICONE_PIXEL = Object.fromEntries(Object.entries(DESENHOS).map(([k, fn]) => [k, paraURL(contorno(fn()))]));
+
+// Ícones da interface: ilustrações geradas no estilo do guia (img/icones, recortadas por tools/recortar_icones.py).
+export const ICONE_PX = Object.fromEntries(Object.keys(DESENHOS).map((k) => [k, `img/icones/${k}.png`]));
