@@ -26,7 +26,7 @@ export function criarElementoCarta(id, idx) {
   el.innerHTML = `
     <div class="carta-moldura">
       <div class="carta-interior">
-        <div class="carta-arte">${imgOuNada(`img/cartas/${c.id}.png`)}<span class="emoji">${c.icone}</span></div>
+        <div class="carta-arte">${imgOuNada(`img/cartas/${c.id}.jpg`)}<span class="emoji">${c.icone}</span></div>
         <div class="carta-faixa"><span>${c.nome}</span></div>
         <div class="carta-gema" title="${NOME_RARIDADE[c.nivel]}"></div>
         <div class="carta-texto"><span>${descreverCarta(c)}</span></div>
