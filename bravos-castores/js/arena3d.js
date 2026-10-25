@@ -2076,7 +2076,20 @@ export function criarArena(container, aoSom = () => {}) {
     const h = Math.max(1, container.clientHeight);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.fov = w / h < 1.3 ? 52 : 40;
+    // o layout pode pedir outro campo de visão e subir a cena (--fov-3d, --desloc-3d no CSS),
+    // por exemplo na tela cheia, onde a mão fica por cima da parte de baixo
+    const css = getComputedStyle(container);
+    const fov = parseFloat(css.getPropertyValue('--fov-3d'));
+    const desloc = parseFloat(css.getPropertyValue('--desloc-3d')) || 0;
+    camera.fov = fov || (w / h < 1.3 ? 52 : 40);
+    // com painéis por cima das laterais, telas mais estreitas precisam de uma câmera mais aberta
+    const hfovMin = parseFloat(css.getPropertyValue('--hfov-min-3d'));
+    if (hfovMin) {
+      const vfov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(hfovMin) / 2) / (w / h)));
+      camera.fov = Math.max(camera.fov, vfov);
+    }
+    if (desloc) camera.setViewOffset(w, h, 0, desloc * h, w, h);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
   }
   const obs = 'ResizeObserver' in window ? new ResizeObserver(redimensionar) : null;

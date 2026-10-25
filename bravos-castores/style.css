@@ -894,73 +894,82 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
 }
 
 /* =====================================================================
-   Tema v3: moldura em imagem (img/moldura.webp, gerada no ChatGPT)
-   No computador a tela de jogo vira um palco 3:2 com a moldura por cima
-   da arena 3D. Cada peça é posicionada nas coordenadas da imagem
-   (1536 x 1024) com --x/--y/--w/--h, multiplicadas por --u.
-   No celular e em telas estreitas continua o layout de antes.
+   Tema v4 (computador): a arena 3D ocupa a tela inteira e as peças da
+   interface flutuam por cima. As peças são recortes da moldura gerada no
+   ChatGPT (img/ui/, por tools/preparar_moldura.py). Dentro dos painéis as
+   posições seguem os pixels da imagem original (× --u).
+   No celular continua a moldura em retrato (Tema v3 no celular, abaixo).
    ===================================================================== */
 .moldura-img { display: none; }
 
 @media (min-width: 901px) and (min-aspect-ratio: 6/5) {
-  body { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .7)), var(--tex-escura) center / 520px auto, #24160b; }
-
   #tela-jogo {
-    --palco-w: min(100vw, 150vh);
-    --u: calc(var(--palco-w) / 1536);
+    --u: min(calc(100vh / 1024), calc(100vw / 1700));
+    --m: clamp(8px, calc(14 * var(--u)), 18px); /* margem das peças até a borda */
     --carta-w: calc(172 * var(--u));
     --carta-h: calc(var(--carta-w) * 1.38);
-    inset: 0; margin: auto; width: var(--palco-w); height: calc(var(--palco-w) / 1.5);
-    display: block; padding: 0; gap: 0; overflow: hidden;
-    background: #2a1a0e; box-shadow: 0 0 50px rgba(0, 0, 0, .8);
+    inset: 0; width: 100%; height: 100%;
+    display: block; padding: 0; gap: 0; overflow: hidden; background: #2a1a0e;
   }
+  /* vinheta suave nas bordas, para as peças se destacarem do cenário */
   #tela-jogo .moldura-img {
-    display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: url(img/moldura.webp) 0 0 / 100% 100% no-repeat;
-  }
-
-  /* posicionamento em unidades da imagem */
-  #tela-jogo :is(.topo > :not(.topo-dir), .topo-dir > *, .painel, .avatar, .nome, .stat, .cenario, .mao-area, .mao, .ajuda-arraste, .btn-dica) {
-    position: absolute; margin: 0; right: auto; bottom: auto;
-    left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u));
-    width: calc(var(--w) * var(--u)); height: calc(var(--h) * var(--u));
+    display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 75% 70% at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(20, 10, 4, .45) 100%),
+      linear-gradient(rgba(20, 10, 4, .35), rgba(20, 10, 4, 0) 12%);
   }
   #tela-jogo :is(.mesa, .topo-dir, .painel-cabeca, .defesa, .grupo) { display: contents; }
   #tela-jogo :is(.flamula-topo, .flamula) { display: none; }
 
-  /* ---- topo ---- */
+  /* peça flutuante: imagem recortada, sombra projetada no cenário */
+  #tela-jogo :is(.topo .btn, .topo .placa, .painel, .ajuda-arraste, #btn-dica) {
+    position: absolute; margin: 0; padding: 0; border: 0; box-shadow: none;
+    background-size: 100% 100%; background-repeat: no-repeat; background-color: transparent;
+    filter: drop-shadow(0 calc(6 * var(--u)) calc(10 * var(--u)) rgba(0, 0, 0, .55));
+  }
+
+  /* ---- topo: placas soltas nos cantos ---- */
   #tela-jogo .topo {
-    position: absolute; left: 0; top: 0; width: 100%; height: calc(84 * var(--u)); z-index: 5;
+    position: absolute; inset: 0 0 auto 0; height: 0; z-index: 5;
     margin: 0; padding: 0; display: block; background: none; border: 0; box-shadow: none;
   }
   #tela-jogo .topo :is(.btn, .placa) {
-    background: none; border: 0; box-shadow: none; padding: 0; border-radius: calc(10 * var(--u));
+    top: var(--m); height: calc(70 * var(--u)); border-radius: calc(10 * var(--u));
     display: flex; align-items: center; justify-content: center; white-space: nowrap;
   }
-  #tela-jogo .topo .btn:hover { background: rgba(255, 240, 200, .18); filter: none; }
-  #btn-menu { --x: 20; --y: 8; --w: 80; --h: 68; }
-  #btn-musica { --x: 1255; --y: 6; --w: 82; --h: 70; }
-  #btn-som { --x: 1345; --y: 6; --w: 82; --h: 70; }
-  #btn-ajuda { --x: 1436; --y: 6; --w: 80; --h: 70; }
+  #tela-jogo .topo .btn:hover { filter: drop-shadow(0 calc(6 * var(--u)) calc(10 * var(--u)) rgba(0, 0, 0, .55)) brightness(1.08); }
+  #tela-jogo #btn-menu { left: var(--m); width: calc(80 * var(--u)); background-image: url(img/ui/placa-menu.webp); }
+  #tela-jogo #turno { left: calc(var(--m) + 88 * var(--u)); width: calc(193 * var(--u)); height: calc(72 * var(--u)); background-image: url(img/ui/placa-turno.webp); }
+  #tela-jogo #vez { left: calc(var(--m) + 289 * var(--u)); width: calc(296 * var(--u)); background-image: url(img/ui/placa-vez.webp); }
+  #tela-jogo :is(#btn-musica, #btn-som, #btn-ajuda) { width: calc(82 * var(--u)); background-image: url(img/ui/botao.webp); }
+  #tela-jogo #btn-ajuda { right: var(--m); }
+  #tela-jogo #btn-som { right: calc(var(--m) + 90 * var(--u)); }
+  #tela-jogo #btn-musica { right: calc(var(--m) + 180 * var(--u)); }
   #tela-jogo .btn.quadrado { font-size: calc(34 * var(--u)); color: #3b2412; text-shadow: 0 1px 0 rgba(255, 240, 200, .6); }
-  #turno { --x: 112; --y: 6; --w: 193; --h: 72; }
-  #vez { --x: 318; --y: 6; --w: 296; --h: 70; }
   #tela-jogo #turno { font-size: calc(30 * var(--u)); color: #3b2412; letter-spacing: 1px; text-shadow: 0 2px 0 rgba(255, 240, 200, .55); }
   #tela-jogo #vez { font-size: calc(21 * var(--u)); padding: 0 calc(20 * var(--u)); gap: calc(7 * var(--u)); letter-spacing: .5px; }
   #tela-jogo #vez > span { overflow: hidden; text-overflow: ellipsis; }
-  #tela-jogo #vez[data-jogador="0"] { background: url(img/placa-vez-verde.webp) 0 0 / 100% 100%; }
-  #tela-jogo #vez[data-jogador="1"] { background: url(img/placa-vez-vermelha.webp) 0 0 / 100% 100%; }
+  #tela-jogo #vez[data-jogador="0"] { background-image: url(img/placa-vez-verde.webp); }
+  #tela-jogo #vez[data-jogador="1"] { background-image: url(img/placa-vez-vermelha.webp); }
 
-  /* ---- painéis ---- */
+  /* ---- painéis flutuando nas laterais ---- */
   #tela-jogo .painel {
-    --x: 10; --y: 82; --w: 342; --h: 672; z-index: 3;
-    display: block; padding: 0; border: 0; border-radius: calc(16 * var(--u)); overflow: visible;
-    background: none; box-shadow: none; font-size: calc(20 * var(--u));
+    top: calc(var(--m) + 92 * var(--u)); width: calc(342 * var(--u)); height: calc(672 * var(--u));
+    z-index: 3; display: block; overflow: visible; border-radius: calc(14 * var(--u));
+    font-size: calc(20 * var(--u)); transition: box-shadow .3s;
   }
-  #tela-jogo #painel-1 { --x: 1185; }
+  #tela-jogo #painel-0 { left: var(--m); background-image: url(img/ui/painel-esq.webp); }
+  #tela-jogo #painel-1 { right: var(--m); background-image: url(img/ui/painel-dir.webp); }
   #tela-jogo .painel.ativo { box-shadow: 0 0 0 calc(4 * var(--u)) #ffd43b, 0 0 calc(30 * var(--u)) calc(8 * var(--u)) rgba(255, 212, 59, .55); }
+
+  /* dentro do painel: pixels da imagem original */
+  #tela-jogo :is(.avatar, .nome, .stat) {
+    position: absolute; margin: 0; right: auto; bottom: auto;
+    left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u));
+    width: calc(var(--w) * var(--u)); height: calc(var(--h) * var(--u));
+  }
   #tela-jogo .avatar { --x: 36; --y: 44; --w: 84; --h: 84; border: 0; box-shadow: none; font-size: calc(44 * var(--u)); background: radial-gradient(#a6dc8f, #4c9a40); }
-  #tela-jogo #painel-1 .avatar { --x: 41; background: radial-gradient(#f2a197, #c0453a); }
+  #tela-jogo #painel-1 .avatar { background: radial-gradient(#f2a197, #c0453a); }
   #tela-jogo .nome {
     --x: 132; --y: 50; --w: 118; --h: 80;
     display: flex; flex-direction: column; justify-content: center;
@@ -996,32 +1005,40 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   #tela-jogo [data-linha="cristais"] { --x: 40; --y: 576; --w: 264; --h: 60; }
   #tela-jogo .stat.gerador { padding-right: calc(16 * var(--u)); }
 
-  /* ---- arena: o canvas passa um pouco por baixo da moldura ---- */
+  /* ---- arena: a tela inteira ---- */
   #tela-jogo .cenario {
-    --x: 368; --y: 98; --w: 800; --h: 634; z-index: 1;
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; z-index: 0;
     border: 0; border-radius: 0; box-shadow: none;
     background: linear-gradient(#6fb6ea, #cfe9f7 55%, #74b345 55%);
+    --fov-3d: 50; /* campo de visão da câmera nesse layout */
+    --hfov-min-3d: 82; /* em telas mais estreitas a câmera abre para os painéis não cobrirem os castelos */
+    --desloc-3d: 0.07; /* sobe a cena para ela não ficar atrás da mão */
   }
-  #tela-jogo .log { top: calc(26 * var(--u)); font-size: calc(19 * var(--u)); }
-  body[data-zona="jogar"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(14 * var(--u)) #5dff6c, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(93, 255, 108, .45); }
-  body[data-zona="negado"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(14 * var(--u)) #ff5a4a, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(255, 90, 74, .4); }
-  #tela-jogo .aviso-jogar { font-size: calc(36 * var(--u)); }
+  #tela-jogo .log { top: calc(var(--m) + 92 * var(--u)); max-width: min(46%, calc(760 * var(--u))); font-size: calc(19 * var(--u)); z-index: 4; }
+  #tela-jogo .faixa-turno { top: 34%; }
+  body[data-zona="jogar"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(6 * var(--u)) #5dff6c, inset 0 0 calc(120 * var(--u)) calc(20 * var(--u)) rgba(93, 255, 108, .4); }
+  body[data-zona="negado"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(6 * var(--u)) #ff5a4a, inset 0 0 calc(120 * var(--u)) calc(20 * var(--u)) rgba(255, 90, 74, .35); }
+  #tela-jogo .aviso-jogar { font-size: calc(36 * var(--u)); bottom: calc(300 * var(--u)); }
 
-  /* ---- prateleira da mão ---- */
-  #tela-jogo .mao-area { --x: 0; --y: 765; --w: 1536; --h: 259; z-index: 6; background: none; }
-  #tela-jogo .mao { --x: 300; --y: 0; --w: 936; --h: 259; }
+  /* ---- mão por cima do cenário, com um degradê escuro para as cartas se destacarem ---- */
+  #tela-jogo .mao-area {
+    position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: auto; height: calc(270 * var(--u));
+    margin: 0; z-index: 6; border: 0; background: linear-gradient(rgba(20, 10, 4, 0), rgba(20, 10, 4, .5) 70%);
+  }
+  #tela-jogo .mao { position: absolute; inset: auto; left: calc(50% - 468 * var(--u)); top: 0; width: calc(936 * var(--u)); height: 100%; }
   #tela-jogo .mao .carta { bottom: calc(var(--carta-h) * -0.08); }
-  #tela-jogo .ajuda-arraste {
-    --x: 12; --y: 147; --w: 283; --h: 91; max-width: none; opacity: 1;
-    padding: 0 calc(22 * var(--u)); gap: calc(14 * var(--u)); font-size: calc(15 * var(--u)); line-height: 1.25;
+  #tela-jogo .mao-area > .ajuda-arraste {
+    left: var(--m); bottom: var(--m); top: auto; width: calc(283 * var(--u)); height: calc(91 * var(--u));
+    max-width: none; opacity: 1; background-image: url(img/ui/placa-arraste.webp); border-radius: calc(10 * var(--u));
+    display: flex; align-items: center; padding: 0 calc(22 * var(--u)); gap: calc(14 * var(--u)); font-size: calc(15 * var(--u)); line-height: 1.25;
   }
   #tela-jogo .verso-carta { width: calc(30 * var(--u)); height: calc(41 * var(--u)); }
-  #tela-jogo .btn-dica {
-    --x: 1245; --y: 147; --w: 275; --h: 91;
-    background: none; border: 0; box-shadow: none; padding: 0; justify-content: center;
+  #tela-jogo #btn-dica {
+    right: var(--m); bottom: var(--m); left: auto; top: auto; width: calc(275 * var(--u)); height: calc(91 * var(--u));
+    background-image: url(img/ui/placa-dica.webp); border-radius: calc(10 * var(--u)); justify-content: center;
     font-size: calc(36 * var(--u)); color: #3b2412; text-shadow: 0 2px 0 rgba(255, 245, 200, .6);
   }
-  #tela-jogo .btn-dica:hover:not(:disabled) { background: rgba(255, 255, 255, .15); filter: none; }
+  #tela-jogo #btn-dica:hover:not(:disabled) { filter: drop-shadow(0 calc(6 * var(--u)) calc(10 * var(--u)) rgba(0, 0, 0, .55)) brightness(1.08); }
 }
 @keyframes produzPalco { 50% { box-shadow: 0 0 0 3px #ffe066, 0 0 18px 4px rgba(255, 212, 59, .8); } }
 
