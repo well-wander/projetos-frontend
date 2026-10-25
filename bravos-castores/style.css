@@ -274,9 +274,11 @@ button { font-family: inherit; font-weight: 800; cursor: pointer; }
 
 /* faixa "Vez de Fulano" */
 .faixa-turno { position: absolute; left: 0; right: 0; top: 38%; z-index: 4; display: flex; justify-content: center; pointer-events: none; opacity: 0; }
+.cenario { container-type: inline-size; }
 .faixa-turno span {
-  font-family: var(--fonte-titulo); font-size: clamp(28px, 3.8vw, 66px); letter-spacing: 2px; color: #fff; white-space: nowrap;
-  padding: .3em 1.4em .2em; background: var(--madeira); border: 4px solid #2b1a10; border-radius: 14px;
+  font-family: var(--fonte-titulo); font-size: clamp(18px, 5.4cqw, 64px); letter-spacing: 2px; color: #fff; white-space: nowrap;
+  max-width: 94%; overflow: hidden; text-overflow: ellipsis;
+  padding: .3em 1em .2em; background: var(--madeira); border: 4px solid #2b1a10; border-radius: 14px;
   box-shadow: 0 6px 0 rgba(0, 0, 0, .35), 0 0 0 6px var(--cor-faixa, #4caf50), 0 0 30px 10px rgba(0, 0, 0, .25);
   text-shadow: 0 4px 0 #2b1a10, 3px 3px 0 #2b1a10, -3px 3px 0 #2b1a10, 3px -3px 0 #2b1a10, -3px -3px 0 #2b1a10;
 }
@@ -323,15 +325,15 @@ body[data-zona="descartar"] .zona-descarte { transform: translate(-50%, 0); back
   transition: transform .25s cubic-bezier(.2, .8, .3, 1.15), filter .2s, opacity .15s;
   touch-action: none; cursor: grab;
 }
-.mao .carta:hover, .mao .carta.ampliada {
+.mao .carta.foco, .mao .carta.ampliada {
   transform: translate(var(--x, 0px), calc(var(--carta-h) * -0.36)) rotate(0deg) scale(1.5);
   z-index: 100 !important; transition-duration: .18s;
 }
-.mao .carta:hover + .carta { --empurra: calc(var(--carta-w) * .32); }
-.mao .carta:hover + .carta + .carta { --empurra: calc(var(--carta-w) * .14); }
-.mao .carta:has(+ .carta:hover) { --empurra: calc(var(--carta-w) * -.32); }
-.mao .carta:has(+ .carta + .carta:hover) { --empurra: calc(var(--carta-w) * -.14); }
-body.arrastando .mao .carta:hover { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rot, 0deg)); }
+.mao .carta.foco + .carta { --empurra: calc(var(--carta-w) * .32); }
+.mao .carta.foco + .carta + .carta { --empurra: calc(var(--carta-w) * .14); }
+.mao .carta:has(+ .carta.foco) { --empurra: calc(var(--carta-w) * -.32); }
+.mao .carta:has(+ .carta + .carta.foco) { --empurra: calc(var(--carta-w) * -.14); }
+body.arrastando .mao .carta.foco { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rot, 0deg)); }
 body.arrastando .mao .carta { --empurra: 0px !important; }
 .mao .carta.sendo-arrastada { opacity: 0; }
 .mao.travada .carta { cursor: default; }
@@ -873,10 +875,9 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   .placa-topo { font-size: 16px; padding: 0 12px; }
   .ajuda-arraste { display: none; }
   .btn-dica { bottom: auto; top: -52px; height: 40px; font-size: 15px; }
-  .mao .carta:hover { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rot, 0deg)); }
+  .mao .carta.foco { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rot, 0deg)); }
   .mao .carta.ampliada { transform: translate(var(--x, 0px), calc(var(--carta-h) * -0.6)) rotate(0deg) scale(1.7); }
-  .mao .carta:hover + .carta, .mao .carta:has(+ .carta:hover) { --empurra: 0px; }
-  .faixa-turno span { font-size: 22px; padding: .3em .8em .2em; }
+  .mao .carta.foco + .carta, .mao .carta:has(+ .carta.foco) { --empurra: 0px; }
   .zona-descarte { width: 80vw; font-size: 16px; }
 }
 @media (max-width: 520px) {
@@ -1199,3 +1200,16 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
     height: calc(84 * var(--u)); padding: 0 calc(26 * var(--u)); font-size: calc(36 * var(--u));
   }
 }
+
+/* prévia do efeito da carta arrastada, por cima do castelo */
+.rotulo3d.previa {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding-bottom: clamp(30px, 3vw, 54px); z-index: 2;
+  font-size: clamp(13px, 1.15vw, 20px); letter-spacing: .5px; text-shadow: none;
+}
+.rotulo3d.previa span {
+  padding: .2em .6em .1em; border-radius: 999px; white-space: nowrap;
+  border: 2px solid #1b120b; box-shadow: 0 3px 0 rgba(0, 0, 0, .35);
+}
+.rotulo3d.previa .mais { background: #e9ffe0; color: #1f6b1a; }
+.rotulo3d.previa .menos { background: #ffe3df; color: #a3241a; }

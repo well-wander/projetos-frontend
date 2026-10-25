@@ -10,7 +10,8 @@
 // separado, na frente do castelo, virado para o inimigo.
 import * as THREE from 'three';
 import { toon, contornar, criarCastor, criarGolem, criarDragao, criarFada, criarArvore, criarCatapulta, criarCarroca, criarCirculo } from './personagens3d.js';
-import { CARTA_POR_ID } from './cartas.js';
+import { CARTA_POR_ID, RECURSO_DA_COR, NOME } from './cartas.js';
+import { aplicarEfeitos } from './regras.js';
 
 // ---------------- medidas ----------------
 const S = 0.5; // largura de um bloco reto
@@ -234,15 +235,21 @@ function texturaPlataforma() {
   return texturaDe(c);
 }
 
+// Céu em degradê que pode ser repintado (o dia passa durante a partida).
 function texturaCeu() {
   const [c, g] = canvas(4, 256);
-  const grad = g.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0, '#4f9fe0');
-  grad.addColorStop(0.55, '#9fd3f5');
-  grad.addColorStop(1, '#dff1fb');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 4, 256);
-  return texturaDe(c);
+  const tex = texturaDe(c);
+  tex.pintar = (topo, meio, baixo) => {
+    const grad = g.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, topo);
+    grad.addColorStop(0.55, meio);
+    grad.addColorStop(1, baixo);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 4, 256);
+    tex.needsUpdate = true;
+  };
+  tex.pintar('#4f9fe0', '#9fd3f5', '#dff1fb');
+  return tex;
 }
 
 function texturaEmblema(cor, simbolo, w = 128, h = 80) {
@@ -309,7 +316,8 @@ export function criarArena(container, aoSom = () => {}) {
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
   // ---- luz ----
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x6b8f3f, 1.5));
+  const luzCeu = new THREE.HemisphereLight(0xffffff, 0x6b8f3f, 1.5);
+  scene.add(luzCeu);
   const sol = new THREE.DirectionalLight(0xfff1d6, 2.2);
   sol.position.set(9, 18, 9);
   sol.castShadow = true;
@@ -330,6 +338,7 @@ export function criarArena(container, aoSom = () => {}) {
   const matTronco = toon(0x7a5230);
   const geoCone = new THREE.ConeGeometry(1, 1, 7);
   const geoTronco = new THREE.CylinderGeometry(0.18, 0.24, 1, 6);
+  const arvoresBalanco = []; // árvores que balançam com o vento
   function arvore(x, z, esc) {
     const g = new THREE.Group();
     const tronco = new THREE.Mesh(geoTronco, matTronco);
@@ -347,6 +356,9 @@ export function criarArena(container, aoSom = () => {}) {
     });
     g.position.set(x, 0, z);
     g.rotation.y = rnd() * Math.PI;
+    g.userData.fase = Math.random() * 6;
+    g.userData.forca = 0.6 + Math.random() * 0.8;
+    arvoresBalanco.push(g);
     scene.add(g);
   }
   for (let i = 0; i < 70; i++) {
@@ -472,6 +484,33 @@ export function criarArena(container, aoSom = () => {}) {
   faixaNoChao(curso, 0.85, 0x4fa8e0, 0.03);
   faixaNoChao(curso.map(([x, z]) => [x - 0.15, z - 0.1]), 0.25, 0xbfe6ff, 0.045);
 
+  // ondinhas brancas descendo o riacho
+  const curvaRio = new THREE.CatmullRomCurve3(curso.map(([x, z]) => new THREE.Vector3(x, 0.06, z)));
+  const geoOnda = new THREE.PlaneGeometry(0.55, 0.09);
+  geoOnda.rotateX(-Math.PI / 2);
+  const ondas = [];
+  for (let i = 0; i < 26; i++) {
+    const m = new THREE.Mesh(geoOnda, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
+    m.userData = { t: Math.random(), lado: (Math.random() - 0.5) * 1.2, vel: 0.03 + Math.random() * 0.025, esc: 0.6 + Math.random() * 0.8 };
+    m.scale.x = m.userData.esc;
+    scene.add(m);
+    ondas.push(m);
+  }
+  const tanRio = new THREE.Vector3();
+  function passoRio(dt) {
+    for (const m of ondas) {
+      const u = m.userData;
+      u.t = (u.t + dt * u.vel) % 1;
+      curvaRio.getPointAt(u.t, m.position);
+      curvaRio.getTangentAt(u.t, tanRio);
+      m.position.x += -tanRio.z * u.lado * 0.55;
+      m.position.z += tanRio.x * u.lado * 0.55;
+      m.position.y = 0.055;
+      m.rotation.y = -Math.atan2(tanRio.z, tanRio.x);
+      m.material.opacity = Math.min(1, u.t * 6, (1 - u.t) * 6) * 0.75;
+    }
+  }
+
   // flores espalhadas
   const geoFlor = new THREE.SphereGeometry(0.07, 6, 4);
   const matsFlor = [toon(0xffffff), toon(0xffe066), toon(0xffa6c1)];
@@ -486,6 +525,66 @@ export function criarArena(container, aoSom = () => {}) {
 
   // mais pinheiros nas laterais, emoldurando a cena
   [[-11.5, 6.5], [-13, 1], [-12, -5], [12.5, 2], [13.5, -3.5], [11.5, -10], [-8.5, -11], [10, 10.5]].forEach(([x, z]) => arvore(x, z, 1.1 + rnd() * 0.5));
+
+  // ---- bichinhos voando: pássaros no céu e borboletas perto das flores ----
+  // Corpo virado para +z; cada asa gira num pivô em volta do eixo z (bater de asas).
+  function criarVoador({ corCorpo, corAsa, envergadura, corda, corpo = 0.1 }) {
+    const g = new THREE.Group();
+    const c = new THREE.Mesh(new THREE.SphereGeometry(corpo, 8, 6), toon(corCorpo));
+    c.scale.set(0.8, 0.7, 1.7);
+    g.add(c);
+    const geoAsa = new THREE.PlaneGeometry(envergadura, corda);
+    geoAsa.rotateX(-Math.PI / 2);
+    geoAsa.translate(envergadura / 2, 0, 0);
+    const matAsa = toon(corAsa, { side: THREE.DoubleSide });
+    const asas = [1, -1].map((lado) => {
+      const pivo = new THREE.Group();
+      const asa = new THREE.Mesh(geoAsa, matAsa);
+      asa.scale.x = lado;
+      pivo.add(asa);
+      g.add(pivo);
+      return { pivo, lado };
+    });
+    g.userData.asas = asas;
+    return g;
+  }
+  const voadores = [];
+  for (let i = 0; i < 5; i++) {
+    const p = criarVoador({ corCorpo: 0x3b2a20, corAsa: 0x4a3426, envergadura: 0.42, corda: 0.16, corpo: 0.1 });
+    const bando = i < 3 ? 0 : 1;
+    p.userData.voo = {
+      tipo: 'passaro', centro: bando ? new THREE.Vector3(-4, 10.5, -16) : new THREE.Vector3(4, 9, -12),
+      raio: bando ? 16 : 13, vel: (bando ? -0.07 : 0.09), fase: (i % 3) * 0.06 + bando * 2, alt: (i % 3) * 0.35,
+      bater: 9 + Math.random() * 3,
+    };
+    scene.add(p);
+    voadores.push(p);
+  }
+  [[0xffd43b, -1.2, 8.4], [0xffffff, 6.4, 5.2], [0xff9ec4, -7.2, 7.4], [0x7cc8ff, 1.6, 1.2]].forEach(([cor, x, z], i) => {
+    const b = criarVoador({ corCorpo: 0x2b1a10, corAsa: cor, envergadura: 0.2, corda: 0.22, corpo: 0.03 });
+    b.userData.voo = { tipo: 'borboleta', centro: new THREE.Vector3(x, 0, z), fase: i * 1.7, bater: 22 };
+    scene.add(b);
+    voadores.push(b);
+  });
+  const posVoo = new THREE.Vector3();
+  function passoVoadores(tempo) {
+    for (const v of voadores) {
+      const u = v.userData.voo;
+      if (u.tipo === 'passaro') {
+        const a = tempo * u.vel + u.fase;
+        posVoo.set(u.centro.x + Math.cos(a) * u.raio, u.centro.y + u.alt + Math.sin(tempo * 0.8 + u.fase * 9) * 0.4, u.centro.z + Math.sin(a) * u.raio * 0.35);
+      } else {
+        const t = tempo * 0.6 + u.fase;
+        posVoo.set(u.centro.x + Math.sin(t) * 1.4 + Math.sin(t * 2.3) * 0.4, 0.55 + Math.abs(Math.sin(t * 3.1)) * 0.6, u.centro.z + Math.sin(t * 0.7) * 1.1);
+      }
+      if (posVoo.distanceToSquared(v.position) > 1e-6) v.lookAt(posVoo.x * 2 - v.position.x, posVoo.y * 2 - v.position.y, posVoo.z * 2 - v.position.z);
+      v.position.copy(posVoo);
+      // planar de vez em quando (pássaros) ou bater sem parar (borboletas)
+      const planando = u.tipo === 'passaro' && Math.sin(tempo * 0.5 + u.fase * 7) > 0.55;
+      const bate = planando ? 0.15 : Math.sin(tempo * u.bater + u.fase * 5) * (u.tipo === 'passaro' ? 0.7 : 1.1);
+      v.userData.asas.forEach(({ pivo, lado }) => { pivo.rotation.z = lado * bate; });
+    }
+  }
 
   // ---- materiais e geometrias dos castelos ----
   // castelos de toras: cada bloco é uma tora deitada (casca nas laterais, anéis nas pontas)
@@ -585,6 +684,14 @@ export function criarArena(container, aoSom = () => {}) {
     return Math.round(parte.porCamada * parte.camadas * f);
   }
 
+  // flamulinhas triangulares dos telhados
+  const geoHasteFlamula = new THREE.CylinderGeometry(0.018, 0.018, 0.56, 5);
+  const geoFlamula = new THREE.BufferGeometry();
+  geoFlamula.setAttribute('position', new THREE.Float32BufferAttribute([0, 0.1, 0, 0, -0.1, 0, 0.46, 0, 0], 3));
+  geoFlamula.computeVertexNormals();
+  const matFlamula = COR_JOGADOR.map((c) => toon(c, { side: THREE.DoubleSide }));
+  const flamulas = [];
+
   // ---- monta os dois jogadores ----
   const tmp = new THREE.Vector3();
   const jogadores = POS_JOGADOR.map((pos, i) => {
@@ -633,6 +740,16 @@ export function criarArena(container, aoSom = () => {}) {
       const ponta = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), toon(0xffd43b));
       ponta.position.y = 0.14 + 1.38;
       t.tampa.add(ponta);
+      // flamulinha tremulando no alto do telhado
+      const haste = new THREE.Mesh(geoHasteFlamula, matMadeiraEscura);
+      haste.position.y = 0.14 + 1.38 + 0.28;
+      t.tampa.add(haste);
+      const suporte = new THREE.Group();
+      suporte.position.y = 0.14 + 1.38 + 0.45;
+      suporte.add(new THREE.Mesh(geoFlamula, matFlamula[i]));
+      suporte.userData = { base: -grupo.rotation.y, fase: Math.random() * 6 };
+      t.tampa.add(suporte);
+      flamulas.push(suporte);
       grupo.add(t.tampa);
     });
 
@@ -794,6 +911,7 @@ export function criarArena(container, aoSom = () => {}) {
     p.rotCastelo.textContent = valores.castelo;
     p.rotMuralha.textContent = valores.muralha;
     syncTrabalhadores(idx, valores);
+    syncPilhas(idx, valores);
     return duracao;
   }
 
@@ -843,6 +961,7 @@ export function criarArena(container, aoSom = () => {}) {
     m.position.copy(inicio);
     scene.add(m);
     projeteis.push({ m, inicio, fim, t: 0, dur: 1.25, altura: 4 + inicio.distanceTo(fim) * 0.14, magia, aoChegar });
+    focar(() => m.position, { forca: 0.3, aprox: 0.06 });
     aoSom('lancar');
   }
 
@@ -987,7 +1106,259 @@ export function criarArena(container, aoSom = () => {}) {
     const escolhidos = lugares.slice(0, MAX_VISIVEIS * 3).sort((x, y) => x.a - y.a);
     p.lugares = { construtores: escolhidos.slice(0, 4), soldados: escolhidos.slice(4, 8), magos: escolhidos.slice(8, 12) };
     p.trabalhadores = { construtores: [], soldados: [], magos: [] };
+    p.dirCam = dirCam;
+    p.torcida = [];
   });
+
+  // ---------------- pilhas de recurso ao lado de cada castelo ----------------
+  // Toras (madeira), espadas num suporte (armas) e cristais (cristais). A quantidade de itens
+  // acompanha o recurso do painel, para dar para ver de relance quem está rico.
+  const RECURSO_DO_TIPO = { construtores: 'madeira', soldados: 'armas', magos: 'cristais' };
+  const POR_ITEM = 3; // 1 item na pilha a cada 3 de recurso
+  const MAX_ITENS = { madeira: 10, armas: 8, cristais: 9 };
+  const matCristal = toon(0x6fc3ff, { emissive: 0x2a78c8, emissiveIntensity: 0.55 });
+  const geoCristal = new THREE.OctahedronGeometry(0.2, 0);
+  const CORES_RECURSO = { madeira: 0xc8955a, armas: 0xdde3e8, cristais: 0x8fd8ff };
+
+  function itemDaPilha(recurso, k) {
+    if (recurso === 'madeira') {
+      const m = new THREE.Mesh(geoTora, matsCastelo[k % matsCastelo.length]);
+      m.scale.set(1.45, 0.55, 0.55);
+      m.rotation.y = Math.PI / 2; // pontas (anéis) viradas para a câmera
+      // pirâmide: 4, 3, 2, 1
+      let fileira = 0;
+      let resto = k;
+      while (resto >= 4 - fileira) { resto -= 4 - fileira; fileira++; }
+      const n = 4 - fileira;
+      m.position.set((resto - (n - 1) / 2) * 0.29, 0.14 + fileira * 0.24, 0);
+      m.castShadow = true;
+      return m;
+    }
+    if (recurso === 'armas') {
+      const m = espada();
+      m.scale.setScalar(0.55);
+      m.position.set((k - 3.5) * 0.15, 0.32, 0.06);
+      m.rotation.z = (k % 2 ? 1 : -1) * 0.1;
+      return m;
+    }
+    const m = new THREE.Mesh(geoCristal, matCristal);
+    const a = k * 2.4;
+    const r = k === 0 ? 0 : 0.1 + Math.sqrt(k) * 0.08;
+    const esc = 1.25 - k * 0.07;
+    m.scale.set(esc, esc * 1.9, esc);
+    m.position.set(Math.cos(a) * r, 0.14 * esc * 1.9, Math.sin(a) * r * 0.7);
+    m.rotation.set((Math.random() - 0.5) * 0.4, Math.random() * 3, (Math.random() - 0.5) * 0.4);
+    contornar(m, 0.1);
+    return m;
+  }
+
+  function suporteDeArmas() {
+    const g = new THREE.Group();
+    [-0.62, 0.62].forEach((x) => {
+      const poste = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.62, 6), matMadeiraEscura);
+      poste.position.set(x, 0.31, 0);
+      contornar(poste, 0.12);
+      g.add(poste);
+    });
+    const barra = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.06, 0.06), matMadeira);
+    barra.position.y = 0.56;
+    contornar(barra, 0.12);
+    g.add(barra);
+    return g;
+  }
+
+  jogadores.forEach((p) => {
+    p.pilhas = {};
+    for (const tipo of ['construtores', 'soldados', 'magos']) {
+      const lugares = p.lugares[tipo];
+      const meio = lugares.reduce((s, l) => s + l.a, 0) / lugares.length;
+      const grupo = new THREE.Group();
+      grupo.position.set(Math.sin(meio) * 4.35, TOPO_PLATAFORMA, Math.cos(meio) * 4.35);
+      grupo.rotation.y = Math.atan2(p.dirCam.x, p.dirCam.z);
+      if (tipo === 'soldados') grupo.add(suporteDeArmas());
+      p.grupo.add(grupo);
+      p.pilhas[tipo] = { grupo, itens: [], recurso: RECURSO_DO_TIPO[tipo] };
+    }
+  });
+
+  function syncPilhas(idx, valores) {
+    const p = jogadores[idx];
+    for (const tipo in p.pilhas) {
+      const pilha = p.pilhas[tipo];
+      const v = valores[pilha.recurso];
+      if (v === undefined) continue;
+      const alvo = Math.min(MAX_ITENS[pilha.recurso], Math.ceil(Math.max(0, v) / POR_ITEM));
+      while (pilha.itens.length < alvo) {
+        const m = itemDaPilha(pilha.recurso, pilha.itens.length);
+        pilha.grupo.add(m);
+        pilha.itens.push(m);
+        nascer(m, 0.3);
+      }
+      while (pilha.itens.length > alvo) {
+        const m = pilha.itens.pop();
+        const pos = m.getWorldPosition(new THREE.Vector3());
+        const final = m.scale.clone();
+        durante(0.25, (k) => m.scale.copy(final).multiplyScalar(1 - k * 0.98)).then(() => {
+          pilha.grupo.remove(m);
+          poeira(pos, 2, CORES_RECURSO[pilha.recurso]);
+        });
+      }
+    }
+  }
+
+  // Começo do turno: cada castor visível pula e joga 1 recurso na pilha da sua cor.
+  function itemVoador(recurso) {
+    if (recurso === 'madeira') {
+      const m = new THREE.Mesh(geoTora, matsCastelo[0]);
+      m.scale.set(1.1, 0.45, 0.45);
+      return m;
+    }
+    if (recurso === 'armas') {
+      const m = espada();
+      m.scale.setScalar(0.5);
+      return m;
+    }
+    const m = new THREE.Mesh(geoCristal, matCristal);
+    m.scale.set(1, 1.7, 1);
+    return m;
+  }
+  function animarProducao(idx, valores) {
+    const p = jogadores[idx];
+    const esperas = [];
+    for (const tipo of ['construtores', 'soldados', 'magos']) {
+      const pilha = p.pilhas[tipo];
+      const destino = pilha.grupo.localToWorld(new THREE.Vector3(0, 0.55, 0));
+      p.trabalhadores[tipo].forEach((c, n) => {
+        const atraso = n * 0.14 + (tipo === 'soldados' ? 0.1 : tipo === 'magos' ? 0.2 : 0);
+        const u = c.userData;
+        const de = c.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 1.0, 0));
+        esperas.push(esperar(atraso).then(() => {
+          u.ocupado = true;
+          if (u.braco) u.braco.rotation.x = -2.6;
+          return durante(0.42, (k) => { c.position.y = TOPO_PLATAFORMA + Math.sin(k * Math.PI) * 0.32; });
+        }).then(() => { u.ocupado = false; }));
+        const item = itemVoador(pilha.recurso);
+        item.visible = false;
+        colocar(item, de, item.scale.x);
+        esperas.push(esperar(atraso + 0.12).then(() => {
+          item.visible = true;
+          return durante(0.7, (k) => {
+            item.position.lerpVectors(de, destino, k);
+            item.position.y += Math.sin(k * Math.PI) * 1.1;
+            item.rotation.y += 0.18;
+            item.rotation.x += 0.1;
+          });
+        }).then(() => {
+          scene.remove(item);
+          poeira(destino, 3, CORES_RECURSO[pilha.recurso]);
+          if (tipo === 'magos') for (let k = 0; k < 4; k++) particula(destino.clone(), 0xcff0ff, new THREE.Vector3((Math.random() - 0.5) * 1.5, 1 + Math.random(), (Math.random() - 0.5) * 1.5), 0.6, 0.18);
+        }));
+      });
+    }
+    return Promise.all(esperas).then(() => syncPilhas(idx, valores));
+  }
+
+  // ---------------- estados do castelo: em perigo (fogo e fumaça) ou quase vencendo (brilho e torcida) ----------------
+  const LIMITE_PERIGO = 15;
+  const LIMITE_GLORIA = 85;
+  const luzesFogo = jogadores.map(() => { const l = new THREE.PointLight(0xff7a2a, 0, 8, 1.6); scene.add(l); return l; });
+  const luzesGloria = jogadores.map(() => { const l = new THREE.PointLight(0xffd43b, 0, 10, 1.4); scene.add(l); return l; });
+  const posEstado = new THREE.Vector3();
+  // chamas: cones brilhantes que tremulam no alto do castelo em perigo
+  const geoChama = new THREE.ConeGeometry(0.22, 0.75, 7);
+  geoChama.translate(0, 0.375, 0);
+  const matChamaFora = new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: 0.9, depthWrite: false });
+  const matChamaDentro = new THREE.MeshBasicMaterial({ color: 0xffd43b, transparent: true, opacity: 0.95, depthWrite: false });
+  jogadores.forEach((p) => {
+    p.chamas = [[0.6, 0.5], [-0.7, 0.2], [0.1, -0.6], [-0.2, 0.9]].map(([x, z], n) => {
+      const g = new THREE.Group();
+      const fora = new THREE.Mesh(geoChama, matChamaFora);
+      const dentro = new THREE.Mesh(geoChama, matChamaDentro);
+      dentro.scale.setScalar(0.55);
+      dentro.position.y = 0.02;
+      g.add(fora, dentro);
+      g.position.set(x, 0, z);
+      g.userData.fase = n * 1.9;
+      g.visible = false;
+      p.grupo.add(g);
+      return g;
+    });
+  });
+
+  function syncTorcida(p, querTorcida) {
+    if (querTorcida && !p.torcida.length) {
+      // castores da torcida nos dois lados do castelo, do lado que a câmera vê
+      const base = Math.atan2(p.dirCam.x, p.dirCam.z);
+      [1.75, 2.05, -1.75, -2.05].forEach((desvio, n) => {
+        const a = base + desvio;
+        const c = criarCastor(['construtor', 'soldado', 'mago', 'construtor'][n]);
+        c.scale.setScalar(0.62);
+        c.position.set(Math.sin(a) * (4.7 + (n % 2) * 0.5), 0, Math.cos(a) * (4.7 + (n % 2) * 0.5) + 0.75);
+        c.rotation.y = base + (desvio > 0 ? -0.5 : 0.5); // de frente para a câmera, meio virados para o castelo
+        c.userData.fase = n * 0.7;
+        p.grupo.add(c);
+        p.torcida.push(c);
+        nascer(c, 0.4);
+      });
+    } else if (!querTorcida && p.torcida.length) {
+      p.torcida.forEach((c) => {
+        poeira(c.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.4, 0)), 5);
+        p.grupo.remove(c);
+      });
+      p.torcida.length = 0;
+    }
+  }
+
+  function passoEstados(dt, tempo) {
+    jogadores.forEach((p, i) => {
+      const v = p.vCastelo;
+      const centro = p.grupo.position;
+      const topo = Math.max(p.mestra.topo, p.cortina.topo, 0.9);
+      // em perigo: fumaça escura e fogo, mais forte quanto menor o castelo
+      const perigo = v > 0 && v < LIMITE_PERIGO ? (LIMITE_PERIGO - v) / LIMITE_PERIGO : 0;
+      if (perigo > 0) {
+        // coluna de fumaça escura
+        if (Math.random() < dt * (5 + perigo * 8)) {
+          posEstado.set(centro.x + (Math.random() - 0.5) * 1.6, topo + 0.6, centro.z + (Math.random() - 0.5) * 1.6);
+          particula(posEstado.clone(), Math.random() < 0.5 ? 0x3d3934 : 0x5e5850, new THREE.Vector3(0.3, 0.9 + Math.random() * 0.5, 0), 3, 1 + Math.random() * 0.6);
+        }
+        // faíscas subindo
+        if (Math.random() < dt * (6 + perigo * 10)) {
+          posEstado.set(centro.x + (Math.random() - 0.5) * 1.6, topo + 0.4, centro.z + (Math.random() - 0.5) * 1.6);
+          particula(posEstado.clone(), Math.random() < 0.6 ? 0xff7a2a : 0xffd43b, new THREE.Vector3((Math.random() - 0.5) * 0.6, 1.4 + Math.random() * 0.8, (Math.random() - 0.5) * 0.6), 0.8, 0.22);
+        }
+        luzesFogo[i].position.set(centro.x, topo + 1, centro.z);
+        luzesFogo[i].intensity = (30 + Math.random() * 20) * (0.5 + perigo);
+      } else luzesFogo[i].intensity = 0;
+      p.chamas.forEach((g) => {
+        g.visible = perigo > 0;
+        if (!g.visible) return;
+        const u = g.userData;
+        g.position.y = topo - 0.1;
+        const esc = (0.8 + perigo * 0.9) * (1 + Math.sin(tempo * 13 + u.fase) * 0.12);
+        g.scale.set(esc * (1 + Math.sin(tempo * 9 + u.fase) * 0.1), esc * (1 + Math.sin(tempo * 11 + u.fase * 2) * 0.22), esc);
+        g.rotation.y = tempo * 2 + u.fase;
+      });
+
+      // quase vencendo: brilho dourado subindo e a torcida comemorando
+      const gloria = v >= LIMITE_GLORIA;
+      if (gloria) {
+        if (Math.random() < dt * 7) {
+          const a = Math.random() * Math.PI * 2;
+          posEstado.set(centro.x + Math.cos(a) * 1.9, TOPO_PLATAFORMA + Math.random() * topo, centro.z + Math.sin(a) * 1.9);
+          particula(posEstado.clone(), Math.random() < 0.7 ? 0xffd43b : 0xffffff, new THREE.Vector3(Math.cos(a) * 0.15, 0.8 + Math.random() * 0.5, Math.sin(a) * 0.15), 1.4, 0.2);
+        }
+        luzesGloria[i].position.set(centro.x, topo + 1, centro.z);
+        luzesGloria[i].intensity = 40 + Math.sin(tempo * 3) * 20;
+      } else luzesGloria[i].intensity = 0;
+      syncTorcida(p, gloria);
+      p.torcida.forEach((c) => {
+        const k = Math.abs(Math.sin(tempo * 5 + c.userData.fase));
+        c.position.y = k * 0.3;
+        if (c.userData.braco) c.userData.braco.rotation.x = -2.4 - k * 0.5;
+      });
+    });
+  }
 
   function syncTrabalhadores(idx, valores) {
     const p = jogadores[idx];
@@ -1001,7 +1372,9 @@ export function criarArena(container, aoSom = () => {}) {
         c.scale.setScalar(0.72);
         c.position.copy(lugar.v);
         c.rotation.y = Math.atan2(lugar.v.x, lugar.v.z);
+        c.userData.baseRot = c.rotation.y;
         c.userData.fase = Math.random() * 6;
+        c.userData.tipo = tipo;
         p.grupo.add(c);
         lista.push(c);
         nascer(c, 0.45);
@@ -1016,14 +1389,47 @@ export function criarArena(container, aoSom = () => {}) {
       }
     }
   }
-  function passoTrabalhadores(tempo) {
+  // Cada tipo de castor tem seu trabalho enquanto espera:
+  //   construtores martelam (e soltam lasquinhas de madeira),
+  //   soldados treinam golpes de espada girando o corpo,
+  //   magos flutuam de braço erguido soltando faíscas azuis.
+  const posMao = new THREE.Vector3();
+  function passoTrabalhadores(tempo, dt) {
     jogadores.forEach((p) => {
       for (const tipo in p.trabalhadores) {
         for (const c of p.trabalhadores[tipo]) {
-          if (c.userData.ocupado) continue;
-          c.position.y = TOPO_PLATAFORMA + Math.abs(Math.sin(tempo * 2.2 + c.userData.fase)) * 0.05;
-          c.userData.cabeca.rotation.z = Math.sin(tempo * 1.3 + c.userData.fase) * 0.12;
-          if (c.userData.braco) c.userData.braco.rotation.x = tipo === 'construtores' ? -Math.max(0, Math.sin(tempo * 4 + c.userData.fase)) * 0.9 : 0;
+          const u = c.userData;
+          if (u.ocupado) continue;
+          const f = u.fase;
+          u.cabeca.rotation.z = Math.sin(tempo * 1.3 + f) * 0.12;
+          if (tipo === 'construtores') {
+            const golpe = Math.sin(tempo * 4.2 + f);
+            c.position.y = TOPO_PLATAFORMA + Math.max(0, -golpe) * 0.04;
+            if (u.braco) u.braco.rotation.x = -Math.max(0, golpe) * 1.5;
+            // no fim do golpe, lasquinhas de madeira
+            const fimGolpe = golpe < 0.05 && (u.ultimoGolpe ?? 1) >= 0.05;
+            u.ultimoGolpe = golpe;
+            if (fimGolpe && Math.random() < 0.55) {
+              c.getWorldPosition(posMao).add(tmp.set(Math.sin(c.rotation.y + p.grupo.rotation.y) * 0.35, 0.25, Math.cos(c.rotation.y + p.grupo.rotation.y) * 0.35));
+              for (let k = 0; k < 2; k++) particula(posMao.clone(), 0xc8955a, new THREE.Vector3((Math.random() - 0.5) * 1.4, 0.8 + Math.random() * 0.8, (Math.random() - 0.5) * 1.4), 0.45, 0.12);
+            }
+          } else if (tipo === 'soldados') {
+            // série de três golpes e uma pausa, girando o corpo
+            const ciclo = (tempo * 0.55 + f) % 3;
+            const atacando = ciclo < 1.6;
+            const k = atacando ? Math.sin((ciclo / 1.6) * Math.PI * 3) : 0;
+            if (u.braco) u.braco.rotation.x = atacando ? -0.5 - Math.abs(k) * 1.4 : -0.2;
+            c.rotation.y = u.baseRot + (atacando ? k * 0.35 : Math.sin(tempo * 0.8 + f) * 0.15);
+            c.position.y = TOPO_PLATAFORMA + (atacando ? Math.abs(k) * 0.05 : 0);
+          } else {
+            const flutua = (Math.sin(tempo * 1.6 + f) + 1) * 0.09;
+            c.position.y = TOPO_PLATAFORMA + 0.04 + flutua;
+            if (u.braco) u.braco.rotation.x = -2.1 + Math.sin(tempo * 2.4 + f) * 0.25;
+            if (Math.random() < dt * 2.2) {
+              c.getWorldPosition(posMao).add(tmp.set(0, 1.05 + flutua, 0));
+              particula(posMao.clone(), Math.random() < 0.5 ? 0x7cc8ff : 0xcff0ff, new THREE.Vector3((Math.random() - 0.5) * 0.5, 0.6 + Math.random() * 0.5, (Math.random() - 0.5) * 0.5), 0.9, 0.16);
+            }
+          }
         }
       }
     });
@@ -1076,27 +1482,33 @@ export function criarArena(container, aoSom = () => {}) {
     const sync = (i, ponto) => { sincronizados.add(i); return esperar(sincronizar(i, estado.jogadores[i], ponto)); };
     const esperas = [];
     const tipo = tipoDaCarta(c);
+    // câmera: olha o próprio castelo nas cartas de construção e magia em si mesmo
+    if (!['marcha', 'golem', 'ladrao', 'sabotador', 'dragao', 'feixe', 'catapulta'].includes(tipo)) focar(() => centroCastelo(quem), { forca: 0.3, aprox: 0.07 });
 
     if (tipo === 'marcha') {
       const n = THREE.MathUtils.clamp(Math.ceil(valorAtaque(c) / 7), 1, 4);
       const soldados = [];
       for (let i = 0; i < n; i++) soldados.push(colocar(criarCastor('soldado'), saida(quem, (i - (n - 1) / 2) * 0.8), 0.85));
+      focar(() => tmp.copy(soldados[0].position).setY(1), { forca: 0.38, aprox: 0.1 });
       await Promise.all(soldados.map((s, i) => andar(s, s.position.clone(), pontoDeAtaque(ele, (i - (n - 1) / 2) * 0.75), 2.1, { passos: 9 })));
       aoSom('metal');
       const golpes = Promise.all(soldados.map((s) => balancarBraco(s, 0.9, 3)));
       await esperar(0.25);
+      focoImpacto(pontoDoAlvo(ele));
       impacto();
       esperas.push(sync(ele, pontoDoAlvo(ele)));
       await golpes;
       await Promise.all(soldados.map((s) => andar(s, s.position.clone(), saida(quem, (Math.random() - 0.5) * 2), 1.6, { passos: 8 }).then(() => sumir(s))));
     } else if (tipo === 'golem') {
       const g = colocar(criarGolem(), saida(quem), 1);
+      focar(() => tmp.copy(g.position).setY(1.4), { forca: 0.4, aprox: 0.1 });
       await nascer(g, 0.5);
       await andar(g, g.position.clone(), pontoDeAtaque(ele), 2.8, { pulo: 0.08, passos: 6 });
       await durante(0.45, (k) => { g.userData.braco.rotation.x = -k * 2.4; });
       await durante(0.18, (k) => { g.userData.braco.rotation.x = -2.4 + k * 2.6; });
       tremor = 0.45;
       aoSom('impacto');
+      focoImpacto(pontoDoAlvo(ele));
       impacto();
       esperas.push(sync(ele, pontoDoAlvo(ele)));
       await esperar(0.6);
@@ -1121,6 +1533,7 @@ export function criarArena(container, aoSom = () => {}) {
       const d = colocar(criarDragao(), mundo(quem, 0, 6, 0), 1.1);
       const de = d.position.clone();
       const para = pontoDoAlvo(ele).add(new THREE.Vector3(0, 1.2, 0));
+      focar(() => d.position, { forca: 0.4, aprox: 0.08 });
       aoSom('feitico');
       await durante(2.2, (k, dt, t) => {
         d.position.lerpVectors(de, para, suave(k));
@@ -1130,6 +1543,7 @@ export function criarArena(container, aoSom = () => {}) {
         if (Math.random() < 0.5) particula(d.position.clone(), 0x8fdc6a, new THREE.Vector3(0, -0.3, 0), 0.7, 0.3);
       });
       raioNoCastelo(ele);
+      focoImpacto(para);
       impacto();
       esperas.push(sync(ele, para));
       await durante(0.6, (k) => { d.position.y += 0.15; d.scale.setScalar(1.1 * (1 - k)); });
@@ -1150,6 +1564,7 @@ export function criarArena(container, aoSom = () => {}) {
     } else if (tipo === 'ladrao' || tipo === 'sabotador') {
       const papel = tipo === 'ladrao' ? 'guaxinim' : 'sabotador';
       const bicho = colocar(criarCastor(papel), saida(quem), 0.85);
+      focar(() => tmp.copy(bicho.position).setY(1), { forca: 0.38, aprox: 0.1 });
       await andar(bicho, bicho.position.clone(), pontoDeAtaque(ele, 0.6), tipo === 'ladrao' ? 1.8 : 2.4, { passos: tipo === 'ladrao' ? 10 : 7, agachado: tipo === 'sabotador' });
       if (tipo === 'ladrao') {
         aoSom('roubo');
@@ -1174,6 +1589,7 @@ export function criarArena(container, aoSom = () => {}) {
       aoSom('feitico');
       const alvo = pontoDoAlvo(ele).add(new THREE.Vector3(0, 0.6, 0));
       const deFeixe = mago.position.clone().add(new THREE.Vector3(0, 1.4, 0));
+      focar(alvo.clone().lerp(deFeixe, 0.35), { forca: 0.3, aprox: 0.06, seg: 2.2 });
       const braco = balancarBraco(mago, 1.2, 1, 2.2);
       let malha = null;
       await durante(1.0, () => {
@@ -1302,9 +1718,93 @@ export function criarArena(container, aoSom = () => {}) {
     }
 
     // garante que os dois lados terminem no estado certo
+    soltarFoco(0.7);
     impacto();
     for (const i of [0, 1]) if (!sincronizados.has(i)) esperas.push(sync(i));
     await Promise.all(esperas);
+  }
+
+  // =====================================================================
+  //  PRÉVIA: enquanto a carta é arrastada sobre a arena, mostra o efeito dela
+  //  (toras-fantasma onde vai crescer, toras em vermelho onde vai cair, alvo no inimigo)
+  // =====================================================================
+  const matFantasma = new THREE.MeshBasicMaterial({ color: 0xc4ffae, transparent: true, opacity: 0.4, depthWrite: false });
+  const matPerigo = new THREE.MeshBasicMaterial({ color: 0xff4a3a, transparent: true, opacity: 0.8 });
+  const geoAlvo = new THREE.RingGeometry(0.55, 0.78, 36);
+  geoAlvo.rotateX(-Math.PI / 2);
+  const geoAlvoMira = new THREE.RingGeometry(0.18, 0.28, 24);
+  geoAlvoMira.rotateX(-Math.PI / 2);
+  const matAlvo = new THREE.MeshBasicMaterial({ color: 0xff4a3a, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
+  const previa = { ativa: false, fantasmas: [], tingidos: [], alvos: [], rotulos: [] };
+  const CAMPOS_PREVIA = ['castelo', 'muralha', 'construtores', 'soldados', 'magos', 'madeira', 'armas', 'cristais'];
+
+  function mostrarPrevia(id, quem, estado) {
+    apagarPrevia();
+    const c = CARTA_POR_ID[id];
+    if (!c) return;
+    const antes = estado.jogadores.map((j) => ({ ...j }));
+    const depois = estado.jogadores.map((j) => ({ ...j }));
+    aplicarEfeitos(c, depois[quem], depois[1 - quem]); // só o efeito; o custo o painel já mostra
+    previa.ativa = true;
+    [0, 1].forEach((i) => {
+      const p = jogadores[i];
+      for (const parte of p.partes) {
+        const atual = parte.lista.length;
+        const alvo = alvoDaParte(parte, depois[i]);
+        for (let k = atual; k < alvo; k++) {
+          const pos = parte.pos(k);
+          const m = new THREE.Mesh(parte.geo, matFantasma);
+          m.position.set(pos.x, pos.y, pos.z);
+          m.rotation.y = pos.rot;
+          p.grupo.add(m);
+          previa.fantasmas.push(m);
+        }
+        for (let k = alvo; k < atual; k++) {
+          const m = parte.lista[k];
+          previa.tingidos.push({ m, mat: m.material });
+          m.material = matPerigo;
+        }
+      }
+      // alvos no chão onde o golpe vai bater
+      const naMuralha = depois[i].muralha < antes[i].muralha;
+      const noCastelo = depois[i].castelo < antes[i].castelo;
+      if (naMuralha) previa.alvos.push(alvoNoChao(i, DIST_MURALHA + 0.6, 1));
+      if (noCastelo) previa.alvos.push(alvoNoChao(i, 0.4, 1.9));
+      // texto com cada mudança
+      const linhas = CAMPOS_PREVIA
+        .map((campo) => ({ campo, d: depois[i][campo] - antes[i][campo] }))
+        .filter((x) => x.d)
+        .map(({ campo, d }) => `<span class="${d > 0 ? 'mais' : 'menos'}">${NOME[campo]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`);
+      if (!previa.rotulos[i]) previa.rotulos[i] = rotulo(`previa j${i}`);
+      previa.rotulos[i].innerHTML = linhas.join('');
+      previa.rotulos[i].style.display = linhas.length ? '' : 'none';
+    });
+  }
+  function alvoNoChao(idx, z, esc) {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(geoAlvo, matAlvo), new THREE.Mesh(geoAlvoMira, matAlvo));
+    g.position.copy(mundo(idx, 0, TOPO_PLATAFORMA + 0.04, z));
+    g.scale.setScalar(esc);
+    g.userData.esc = esc;
+    scene.add(g);
+    return g;
+  }
+  function apagarPrevia() {
+    previa.fantasmas.forEach((m) => m.parent && m.parent.remove(m));
+    previa.tingidos.forEach(({ m, mat }) => { m.material = mat; });
+    previa.alvos.forEach((g) => scene.remove(g));
+    previa.fantasmas.length = previa.tingidos.length = previa.alvos.length = 0;
+    previa.rotulos.forEach((el) => { if (el) el.style.display = 'none'; });
+    previa.ativa = false;
+  }
+  function passoPrevia(tempo) {
+    if (!previa.ativa) return;
+    matFantasma.opacity = 0.34 + Math.sin(tempo * 5) * 0.14;
+    matPerigo.opacity = 0.6 + Math.sin(tempo * 7) * 0.3;
+    previa.alvos.forEach((g) => {
+      g.rotation.y = tempo * 1.5;
+      g.scale.setScalar(g.userData.esc * (1 + Math.sin(tempo * 6) * 0.08));
+    });
   }
 
   // ---- câmera estilo batalha de Pokémon ----
@@ -1316,6 +1816,81 @@ export function criarArena(container, aoSom = () => {}) {
   function zoomDesejado() {
     const alto = Math.max(jogadores[0].vCastelo, jogadores[0].vMuralha * 0.8, jogadores[1].vCastelo * 0.75);
     return THREE.MathUtils.clamp((alto - 40) / 60, 0, 1);
+  }
+
+  // Câmera de cinema: segue o que está acontecendo (projétil, tropa, castelo atingido) e,
+  // na troca de vez, desliza um pouco para o lado de quem joga. Tudo suave e discreto.
+  const cine = {
+    seguir: null, // Vector3 ou função que devolve Vector3
+    ate: 0, // tempo (s) em que o foco solta sozinho; 0 = só quando soltarFoco()
+    foco: new THREE.Vector3(1, 1.5, -1),
+    forca: 0, forcaAlvo: 0, // quanto o olhar vai para o foco
+    aprox: 0, aproxAlvo: 0, // quanto a câmera anda em direção ao foco
+    lado: new THREE.Vector3(), ladoAlvo: new THREE.Vector3(),
+    relogio: 0,
+  };
+  function focar(alvo, { forca = 0.4, aprox = 0.12, seg = 0 } = {}) {
+    cine.seguir = alvo;
+    cine.forcaAlvo = forca;
+    cine.aproxAlvo = aprox;
+    cine.ate = seg ? cine.relogio + seg : 0;
+    const p = typeof alvo === 'function' ? alvo() : alvo;
+    if (cine.forca < 0.05 && p) cine.foco.copy(p);
+  }
+  function soltarFoco(depois = 0) {
+    if (depois) { cine.ate = cine.relogio + depois; return; }
+    cine.seguir = null;
+    cine.forcaAlvo = cine.aproxAlvo = 0;
+  }
+  const centroCastelo = (idx, fracAltura = 0.6) => mundo(idx, 0, Math.max(1, jogadores[idx].mestra.topo * fracAltura), 0.4);
+  const focoImpacto = (ponto) => focar(ponto.clone(), { forca: 0.45, aprox: 0.14, seg: 1.4 });
+  const posFoco = new THREE.Vector3();
+  function passoCine(dt) {
+    cine.relogio += dt;
+    if (cine.ate && cine.relogio >= cine.ate) soltarFoco();
+    if (cine.seguir) {
+      const p = typeof cine.seguir === 'function' ? cine.seguir() : cine.seguir;
+      if (p) posFoco.copy(p);
+      cine.foco.lerp(posFoco, Math.min(1, dt * 5));
+    }
+    cine.forca += (cine.forcaAlvo - cine.forca) * Math.min(1, dt * 2.6);
+    cine.aprox += (cine.aproxAlvo - cine.aprox) * Math.min(1, dt * 2.2);
+    cine.lado.lerp(cine.ladoAlvo, Math.min(1, dt * 1.4));
+  }
+
+  // ---- o dia passa: manhã no turno 1, entardecer perto do turno 23 ----
+  const HORAS = [
+    { f: 0, ceu: ['#4f9fe0', '#9fd3f5', '#dff1fb'], sol: '#fff1d6', solI: 2.2, solPos: [9, 18, 9], luz: '#ffffff', chao: '#6b8f3f', luzI: 1.5, nevoa: '#cfe9f7', nuvem: '#ffffff' },
+    { f: 0.55, ceu: ['#3f8fd8', '#a8d2ee', '#f6ead0'], sol: '#ffe2b0', solI: 2.1, solPos: [12, 14, 6], luz: '#fff4e0', chao: '#6b8f3f', luzI: 1.45, nevoa: '#e6e4d4', nuvem: '#fff6ea' },
+    { f: 1, ceu: ['#4a66a0', '#f0a067', '#ffd796'], sol: '#ffb47a', solI: 1.95, solPos: [15, 9, 3], luz: '#ffdcb8', chao: '#76783c', luzI: 1.32, nevoa: '#f0c8a0', nuvem: '#ffdcc8' },
+  ];
+  const corA = new THREE.Color();
+  const corB = new THREE.Color();
+  const misturar = (a, b, k) => corA.set(a).lerp(corB.set(b), k);
+  let horaAtual = 0;
+  let horaAlvo = 0;
+  let horaPintada = -1;
+  function aplicarHora(f) {
+    let i = 0;
+    while (i < HORAS.length - 2 && f > HORAS[i + 1].f) i++;
+    const a = HORAS[i];
+    const b = HORAS[i + 1];
+    const k = THREE.MathUtils.clamp((f - a.f) / (b.f - a.f), 0, 1);
+    scene.background.pintar(...a.ceu.map((c, n) => misturar(c, b.ceu[n], k).getStyle()));
+    sol.color.copy(misturar(a.sol, b.sol, k));
+    sol.intensity = THREE.MathUtils.lerp(a.solI, b.solI, k);
+    sol.position.set(...a.solPos.map((v, n) => THREE.MathUtils.lerp(v, b.solPos[n], k)));
+    luzCeu.color.copy(misturar(a.luz, b.luz, k));
+    luzCeu.groundColor.copy(misturar(a.chao, b.chao, k));
+    luzCeu.intensity = THREE.MathUtils.lerp(a.luzI, b.luzI, k);
+    scene.fog.color.copy(misturar(a.nevoa, b.nevoa, k));
+    matNuvem.color.copy(misturar(a.nuvem, b.nuvem, k));
+    matNuvem.emissive.copy(matNuvem.color);
+    horaPintada = f;
+  }
+  function passoHora(dt) {
+    horaAtual += (horaAlvo - horaAtual) * Math.min(1, dt * 0.6);
+    if (Math.abs(horaAtual - horaPintada) > 0.004) aplicarHora(horaAtual);
   }
 
   // ---- animação ----
@@ -1405,6 +1980,7 @@ export function criarArena(container, aoSom = () => {}) {
         scene.remove(pr.m);
         projeteis.splice(i, 1);
         poeira(pr.fim, 16, pr.magia ? 0x9fdcff : 0xe8dcc0);
+        focoImpacto(pr.fim);
         aoSom('impacto');
         pr.aoChegar(pr.fim);
       }
@@ -1434,12 +2010,33 @@ export function criarArena(container, aoSom = () => {}) {
     nuvens.forEach((n, i) => { n.position.x += dt * (0.25 + i * 0.03); if (n.position.x > 45) n.position.x = -45; });
     passoRaios(dt);
     for (let i = atores.length - 1; i >= 0; i--) if (!atores[i](dt)) atores.splice(i, 1);
-    passoTrabalhadores(tempo);
+    passoTrabalhadores(tempo, dt);
+    passoEstados(dt, tempo);
+    passoVoadores(tempo);
+    passoRio(dt);
+    passoHora(dt);
+    passoPrevia(tempo);
+    // vento: árvores e flamulinhas
+    for (const a of arvoresBalanco) {
+      const u = a.userData;
+      a.rotation.z = Math.sin(tempo * 0.9 + u.fase) * 0.022 * u.forca;
+      a.rotation.x = Math.cos(tempo * 0.7 + u.fase) * 0.014 * u.forca;
+    }
+    for (const f of flamulas) {
+      const u = f.userData;
+      f.rotation.y = u.base + Math.sin(tempo * 3.2 + u.fase) * 0.45;
+      f.scale.y = 1 + Math.sin(tempo * 7 + u.fase) * 0.12;
+    }
 
     // câmera
     zoomAtual += (zoomDesejado() - zoomAtual) * Math.min(1, dt * 1.2);
     camBase.lerpVectors(camPerto.pos, camLonge.pos, zoomAtual);
     alvoBase.lerpVectors(camPerto.alvo, camLonge.alvo, zoomAtual);
+    passoCine(dt);
+    camBase.add(cine.lado);
+    alvoBase.add(cine.lado);
+    alvoBase.lerp(cine.foco, cine.forca);
+    camBase.lerp(cine.foco, cine.aprox);
     camera.position.copy(camBase);
     camera.position.y += Math.sin(tempo * 0.5) * 0.06;
     if (tremor > 0) {
@@ -1464,6 +2061,14 @@ export function criarArena(container, aoSom = () => {}) {
       coloca(p.rotMuralha, p.grupo.localToWorld(tmp.set(0, p.muralha.topo + 0.65, DIST_MURALHA)));
       coloca(p.rotMeta, p.grupo.localToWorld(tmp.set(-(3 * S + 0.4) / 2, TOPO_PLATAFORMA + p.mestra.camadas * H, -(3 * S + 0.4) / 2)));
     });
+    if (previa.ativa) {
+      previa.rotulos.forEach((el, i) => {
+        if (!el) return;
+        const p = jogadores[i];
+        const temCastelo = p.mestra.lista.length > 0;
+        coloca(el, p.grupo.localToWorld(tmp.set(0, p.mestra.topo + (temCastelo ? 2.0 : 0.5), 0)));
+      });
+    }
   }
 
   function redimensionar() {
@@ -1515,10 +2120,30 @@ export function criarArena(container, aoSom = () => {}) {
       destrocos.forEach((m) => scene.remove(m));
       destrocos.length = 0;
       zoomAtual = 0;
+      apagarPrevia();
+      soltarFoco();
+      cine.ladoAlvo.set(0, 0, 0);
+      horaAtual = horaAlvo = 0;
+      aplicarHora(0);
       let maior = 0;
       estado.jogadores.forEach((j, i) => { maior = Math.max(maior, sincronizar(i, j)); });
       return esperar(maior);
     },
+
+    // Troca de vez: a câmera desliza para o lado de quem joga e o dia avança com o turno.
+    vez(quem, turno = 1) {
+      cine.ladoAlvo.copy(jogadores[quem].grupo.position).sub(camPerto.alvo).setY(0).multiplyScalar(0.08);
+      horaAlvo = THREE.MathUtils.clamp((turno - 1) / 22, 0, 1);
+    },
+
+    // Começo do turno: os castores jogam o que produziram nas pilhas.
+    producao(quem, estado) {
+      return animarProducao(quem, estado.jogadores[quem]);
+    },
+
+    // Prévia do efeito da carta arrastada sobre a arena.
+    previa(id, quem, estado) { mostrarPrevia(id, quem, estado); },
+    limparPrevia() { apagarPrevia(); },
 
     // Mostra o estado novo. Em ataques, uma pedra (ou orbe mágico) voa antes do dano.
     // Devolve uma Promise que termina quando toda a animação acabou.

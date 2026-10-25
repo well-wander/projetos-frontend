@@ -7,7 +7,7 @@ import { raiosEm } from './raios.js';
 import {
   $, esperar, criarElementoCarta, renderizarMao, posicionarMao, montarPainel, definirValores, animarValores,
   animarProducao, atualizarCabecalho, faixaDeTurno, mostrarLog, destacarCarta, ajustarEscala, observarLayout,
-  ampliarCarta, fecharCartaAmpliada,
+  ampliarCarta, fecharCartaAmpliada, cartaNoPonto,
 } from './ui.js';
 
 const CHAVE_OPCOES = 'bravos.opcoes';
@@ -187,6 +187,7 @@ async function comecarJogo(novoModo) {
   await fimCarregando();
   if (estado !== meuEstado) return; // voltou ao menu ou recomeçou no meio
   if (modo === 'ia') renderizarTudo(); // mão aparece travada enquanto a faixa passa
+  if (arena) arena.vez(estado.vez, estado.turno);
   await faixaDeTurno(`Vez de ${estado.jogadores[estado.vez].nome}`, estado.vez);
   if (estado !== meuEstado) return;
   ocupado = false;
@@ -291,9 +292,10 @@ async function executar(acao, idx, deRetangulo = null) {
   else if (modo === 'hotseat') $('#mao').innerHTML = '';
   $('#mao').classList.add('travada');
   tocar('vez');
+  if (arena) arena.vez(estado.vez, estado.turno);
   await faixaDeTurno(`Vez de ${estado.jogadores[estado.vez].nome}`, estado.vez);
   tocar('producao');
-  await animarProducao(estado);
+  await Promise.all([animarProducao(estado), arena ? arena.producao(estado.vez, estado) : null]);
   if (estado !== meuEstado) return;
   ocupado = false;
 
@@ -336,6 +338,27 @@ function darDica() {
 // Arrastar para cima (até a arena) joga a carta; arrastar para baixo descarta.
 let arraste = null;
 
+// Foco do mouse na mão (no lugar do :hover, que piscava quando a carta subia e saía de baixo do ponteiro).
+let focoAtual = null;
+function definirFoco(el) {
+  if (focoAtual && !focoAtual.isConnected) focoAtual = null;
+  if (focoAtual === el) return;
+  if (focoAtual) focoAtual.classList.remove('foco');
+  focoAtual = el;
+  if (el) el.classList.add('foco');
+}
+function atualizarFoco(e) {
+  if (e.pointerType && e.pointerType !== 'mouse') return;
+  if (arraste && arraste.moveu) return definirFoco(null);
+  let el = cartaNoPonto(e.clientX, e.clientY);
+  // subindo o mouse por cima da carta ampliada: continua nela, para dar para ler
+  if (!el && focoAtual && focoAtual.isConnected) {
+    const r = focoAtual.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) el = focoAtual;
+  }
+  definirFoco(el);
+}
+
 function zonaDoPonteiro(y) {
   const topoMao = $('.mao-area').getBoundingClientRect().top;
   if (y < topoMao - 10) return 'jogar';
@@ -345,8 +368,11 @@ function zonaDoPonteiro(y) {
 
 function iniciarArraste() {
   const mao = $('#mao');
+  window.addEventListener('pointermove', atualizarFoco);
+  document.addEventListener('mouseleave', () => definirFoco(null));
   mao.addEventListener('pointerdown', (e) => {
-    const el = e.target.closest('.carta');
+    // com mouse, pega a carta em foco (ela pode ter subido e não estar mais embaixo do ponteiro)
+    const el = (e.pointerType === 'mouse' && focoAtual && focoAtual.isConnected ? focoAtual : null) || e.target.closest('.carta');
     if (!el || !minhaVez() || e.button > 0) return;
     e.preventDefault();
     arraste = { el, idx: +el.dataset.idx, x0: e.clientX, y0: e.clientY, moveu: false, fantasma: null, tipo: e.pointerType };
@@ -373,11 +399,19 @@ function iniciarArraste() {
     const zona = zonaDoPonteiro(e.clientY);
     const pode = R.podeJogar(estado, arraste.idx);
     document.body.dataset.zona = zona === 'jogar' ? (pode ? 'jogar' : 'negado') : (zona || '');
+    // prévia do efeito na arena enquanto a carta está sobre ela
+    const comPrevia = zona === 'jogar';
+    if (arena && comPrevia !== arraste.previa) {
+      if (comPrevia) arena.previa(arraste.el.dataset.id, estado.vez, estado);
+      else arena.limparPrevia();
+      arraste.previa = comPrevia;
+    }
   });
   const soltar = () => {
     if (!arraste) return;
     const a = arraste;
     arraste = null;
+    if (arena && a.previa) arena.limparPrevia();
     document.body.classList.remove('arrastando');
     const zona = document.body.dataset.zona;
     document.body.dataset.zona = '';

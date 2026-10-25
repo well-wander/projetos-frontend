@@ -87,6 +87,25 @@ export function posicionarMao() {
   });
 }
 
+// Qual carta está sob o ponteiro, pela posição de repouso de cada carta no leque.
+// A carta em foco sobe e cresce; se o teste usasse a posição dela na tela, ela "fugiria"
+// do mouse, perderia o foco, voltaria e piscaria sem parar.
+export function cartaNoPonto(cx, cy) {
+  const mao = $('#mao');
+  if (!mao) return null;
+  const r = mao.getBoundingClientRect();
+  const x = cx - r.left;
+  const y = cy - r.top;
+  const cartas = [...mao.querySelectorAll('.carta:not(.sendo-arrastada)')];
+  for (let i = cartas.length - 1; i >= 0; i--) {
+    const el = cartas[i];
+    const left = el.offsetLeft + (parseFloat(el.style.getPropertyValue('--x')) || 0);
+    const top = el.offsetTop + (parseFloat(el.style.getPropertyValue('--y')) || 0);
+    if (x >= left && x <= left + el.offsetWidth && y >= top && y <= top + el.offsetHeight) return el;
+  }
+  return null;
+}
+
 // Carta grande no centro da tela (botão direito).
 export function ampliarCarta(id) {
   const caixa = $('#carta-zoom');
