@@ -38,45 +38,55 @@ teste('toda carta tem custo, nível 1-3 e pelo menos um efeito', () => {
   igual(new Set(CARTAS.map((c) => c.id)).size, CARTAS.length, 'ids repetidos:');
 });
 
-teste('jogo novo: 8 cartas na mão, castelo 30, muralha 10, produção do primeiro turno', () => {
+// valor de um efeito da carta, lido dos dados (assim os testes sobrevivem a mudanças de balanceamento)
+const valor = (id, op, campo) => {
+  const e = CARTA_POR_ID[id].efeitos.find((x) => x.op === op && (!campo || x.campo === campo));
+  return e.valor;
+};
+
+teste('jogo novo: 8 cartas, castelo 30, muralha 15, produção do primeiro e bônus do segundo', () => {
   const e = R.novoJogo({ semente: 7 });
   igual(e.jogadores[0].mao.length, 8);
   igual(e.jogadores[1].mao.length, 8);
   igual(e.jogadores[0].castelo, 30);
-  igual(e.jogadores[0].muralha, 10);
-  igual(e.jogadores[0].madeira, 7, 'madeira após produzir:');
-  igual(e.jogadores[1].madeira, 5, 'adversário ainda não produziu:');
+  igual(e.jogadores[0].muralha, 15);
+  igual(e.jogadores[0].madeira, 5 + e.jogadores[0].construtores, 'madeira após produzir:');
+  igual(e.jogadores[1].madeira, 5 + R.BONUS_SEGUNDO, 'segundo jogador começa com bônus:');
 });
 
 teste('não dá para jogar carta sem recurso', () => {
   const e = R.novoJogo({ semente: 3 });
   e.jogadores[0].mao[0] = 'represa';
+  e.jogadores[0].madeira = CARTA_POR_ID.represa.custo - 1;
   igual(R.podeJogar(e, 0), false);
-  e.jogadores[0].madeira = 39;
+  e.jogadores[0].madeira = CARTA_POR_ID.represa.custo;
   igual(R.podeJogar(e, 0), true);
 });
 
 teste('jogar carta cobra o custo e passa a vez (adversário produz)', () => {
-  const e = cenario('torre_vigia', { eu: { madeira: 5 } });
+  const custo = CARTA_POR_ID.torre_vigia.custo;
+  const e = cenario('torre_vigia', { eu: { madeira: custo }, ele: { armas: 5, soldados: 2 } });
   R.jogarCarta(e, 0);
   igual(e.jogadores[0].madeira, 0, 'madeira:');
-  igual(e.jogadores[0].castelo, 35, 'castelo:');
+  igual(e.jogadores[0].castelo, 30 + valor('torre_vigia', 'mod', 'castelo'), 'castelo:');
   igual(e.vez, 1, 'vez:');
   igual(e.jogadores[1].armas, 7, 'adversário produziu:');
   igual(e.jogadores[0].mao.length, 8, 'mão completada:');
 });
 
 teste('ataque bate na muralha e o excedente vai no castelo', () => {
+  const v = valor('brigada', 'ataque');
   const e = cenario('brigada', { ele: { muralha: 10, castelo: 30 } });
-  R.jogarCarta(e, 0); // ataque 12
+  R.jogarCarta(e, 0);
   igual(e.jogadores[1].muralha, 0, 'muralha:');
-  igual(e.jogadores[1].castelo, 28, 'castelo:');
+  igual(e.jogadores[1].castelo, 30 - (v - 10), 'castelo:');
 });
 
 teste('ataque menor que a muralha não toca o castelo', () => {
+  const v = valor('batedores', 'ataque');
   const e = cenario('batedores', { ele: { muralha: 10, castelo: 30 } });
-  R.jogarCarta(e, 0); // ataque 2
-  igual(e.jogadores[1].muralha, 8);
+  R.jogarCarta(e, 0);
+  igual(e.jogadores[1].muralha, 10 - v);
   igual(e.jogadores[1].castelo, 30);
 });
 
@@ -84,12 +94,12 @@ teste('Lança-Torres ignora a muralha', () => {
   const e = cenario('lanca_torres', { ele: { muralha: 50, castelo: 30 } });
   R.jogarCarta(e, 0);
   igual(e.jogadores[1].muralha, 50);
-  igual(e.jogadores[1].castelo, 20);
+  igual(e.jogadores[1].castelo, 30 - valor('lanca_torres', 'ataqueDireto'));
 });
 
 teste('vitória ao chegar a 100 de castelo', () => {
-  const e = cenario('fortaleza', { eu: { castelo: 85 } });
-  R.jogarCarta(e, 0); // +20
+  const e = cenario('fortaleza', { eu: { castelo: 100 - valor('fortaleza', 'mod', 'castelo') } });
+  R.jogarCarta(e, 0);
   igual(e.vencedor, 0);
   igual(e.motivo, 'castelo');
   igual(e.vez, 0, 'não passa a vez depois de acabar:');
@@ -97,7 +107,7 @@ teste('vitória ao chegar a 100 de castelo', () => {
 
 teste('vitória ao destruir o castelo inimigo', () => {
   const e = cenario('guardiao', { ele: { muralha: 0, castelo: 10 } });
-  R.jogarCarta(e, 0); // ataque 32
+  R.jogarCarta(e, 0);
   igual(e.jogadores[1].castelo, 0);
   igual(e.vencedor, 0);
   igual(e.motivo, 'destruiu');
@@ -110,7 +120,7 @@ teste('Carroça: ganha quem jogou se completar 100 e derrubar ao mesmo tempo', (
 });
 
 teste('ritual (maldição) não deixa trabalhador abaixo de 1', () => {
-  const e = cenario('ritual', { ele: { construtores: 1, soldados: 2, magos: 1 } });
+  const e = cenario('ritual', { eu: { construtores: 2 }, ele: { construtores: 1, soldados: 2, magos: 1 } });
   R.jogarCarta(e, 0);
   const ele = e.jogadores[1];
   igual(ele.construtores, 1);
@@ -120,22 +130,27 @@ teste('ritual (maldição) não deixa trabalhador abaixo de 1', () => {
 });
 
 teste('recursos nunca ficam negativos (sabotador)', () => {
-  const e = cenario('sabotador', { ele: { madeira: 2, armas: 10, cristais: 0 } });
+  const tira = -valor('sabotador', 'mod', 'armas');
+  const e = cenario('sabotador', { ele: { madeira: 2, armas: 10, cristais: 0, construtores: 2, soldados: 2, magos: 2 } });
   R.jogarCarta(e, 0);
   const ele = e.jogadores[1]; // depois da jogada ele produz +2 de cada
   igual(ele.madeira, 2);
-  igual(ele.armas, 8);
+  igual(ele.armas, 10 - tira + 2);
   igual(ele.cristais, 2);
 });
 
 teste('guaxinim rouba só o que o inimigo tem', () => {
-  const e = cenario('ladrao', { eu: { madeira: 20, armas: 20, cristais: 20 }, ele: { madeira: 3, armas: 9, cristais: 0 } });
+  const custo = CARTA_POR_ID.ladrao.custo;
+  const e = cenario('ladrao', {
+    eu: { madeira: 20, armas: 20, cristais: 20 },
+    ele: { madeira: 3, armas: 9, cristais: 0, construtores: 2, soldados: 2, magos: 2 },
+  });
   R.jogarCarta(e, 0);
   const eu = e.jogadores[0];
   const ele = e.jogadores[1];
   // ele produz +2 de cada depois da jogada
   igual(ele.madeira, 2); igual(eu.madeira, 23);
-  igual(ele.armas, 6); igual(eu.armas, 10); // 20 − 15 de custo + 5 roubados
+  igual(ele.armas, 6); igual(eu.armas, 20 - custo + 5);
   igual(ele.cristais, 2); igual(eu.cristais, 20);
 });
 

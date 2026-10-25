@@ -19,9 +19,11 @@
 
   <!-- ============ MENU ============ -->
   <section id="tela-menu" class="tela">
+    <div class="capa" aria-hidden="true"></div>
+    <div class="capa-raios" aria-hidden="true"></div>
     <div class="menu-caixa">
       <div class="logo">
-        <img src="img/logo.png" alt="" class="arte-logo" onerror="this.remove()">
+        <img src="img/logo.png" alt="Bravos Castores" class="arte-logo" onerror="this.remove()">
         <div class="placa logo-texto">
           <span class="coroa">👑</span>
           <span class="l1">Bravos</span>
@@ -29,28 +31,24 @@
         </div>
       </div>
 
-      <div class="trio">
-        <div class="castor verde"><img src="img/castor-verde.png" alt="" onerror="this.remove()"><span>🦫</span><small>Construção</small></div>
-        <div class="castor vermelho"><img src="img/castor-vermelho.png" alt="" onerror="this.remove()"><span>🦫</span><small>Batalha</small></div>
-        <div class="castor azul"><img src="img/castor-azul.png" alt="" onerror="this.remove()"><span>🦫</span><small>Magia</small></div>
-      </div>
+      <div class="menu-rodape">
+        <nav class="menu-botoes">
+          <button class="btn grande" data-modo="ia">1 jogador <small>contra o bot</small></button>
+          <button class="btn grande" data-modo="hotseat">2 jogadores <small>no mesmo aparelho</small></button>
+          <button class="btn" id="btn-ajuda-menu">Como jogar</button>
+        </nav>
 
-      <nav class="menu-botoes">
-        <button class="btn grande" data-modo="ia">1 jogador <small>contra o bot</small></button>
-        <button class="btn grande" data-modo="hotseat">2 jogadores <small>no mesmo aparelho</small></button>
-        <button class="btn" id="btn-ajuda-menu">Como jogar</button>
-      </nav>
-
-      <div class="opcoes">
-        <label>Seu nome <input id="opt-nome" maxlength="14" placeholder="Jogador 1"></label>
-        <label>Bot
-          <select id="opt-dificuldade">
-            <option value="facil">Fácil</option>
-            <option value="normal" selected>Normal</option>
-          </select>
-        </label>
-        <label class="chk"><input type="checkbox" id="opt-som" checked> Efeitos</label>
-        <label class="chk"><input type="checkbox" id="opt-musica" checked> Música</label>
+        <div class="opcoes">
+          <label>Seu nome <input id="opt-nome" maxlength="14" placeholder="Jogador 1"></label>
+          <label>Bot
+            <select id="opt-dificuldade">
+              <option value="facil">Fácil</option>
+              <option value="normal" selected>Normal</option>
+            </select>
+          </label>
+          <label class="chk"><input type="checkbox" id="opt-som" checked> Efeitos</label>
+          <label class="chk"><input type="checkbox" id="opt-musica" checked> Música</label>
+        </div>
       </div>
     </div>
   </section>
@@ -111,6 +109,12 @@
     </div>
   </div>
 
+  <div id="carta-zoom" class="carta-zoom oculta" title="Clique para fechar">
+    <div class="zoom-carta"></div>
+    <p class="zoom-lore"></p>
+    <small>Clique em qualquer lugar ou aperte Esc para fechar</small>
+  </div>
+
   <div id="modal-ajuda" class="overlay oculta">
     <div class="pergaminho">
       <h2>Como jogar</h2>
@@ -118,7 +122,7 @@
       <p>No painel, cada cor tem um <b>gerador</b> e um <b>recurso</b>. Os geradores são castores trabalhando: <b>Construtores</b> fazem Madeira, <b>Soldados</b> fazem Armas e <b>Magos</b> fazem Cristais. No começo da sua vez, cada gerador produz 1 do seu recurso.</p>
       <p>Na sua vez, <b>arraste uma carta até a arena</b> para jogá-la (pagando o custo no canto dela) ou <b>arraste para baixo</b> para descartá-la de graça. A carta usada é trocada por outra. Cartas com cadeado ainda não podem ser pagas.</p>
       <p><b>Ataques</b> batem primeiro na 🧱 Muralha; o que sobrar vai no Castelo. Só o <b>Lança-Torres</b> ignora a Muralha.</p>
-      <p class="dica-txt">Passe o mouse numa carta para vê-la maior. No celular, toque na carta para ampliar.</p>
+      <p class="dica-txt">Passe o mouse numa carta para vê-la maior, ou clique com o botão direito para abri-la no centro da tela. No celular, toque na carta para ampliar.</p>
       <button class="btn grande" id="btn-fechar-ajuda">Entendi</button>
     </div>
   </div>

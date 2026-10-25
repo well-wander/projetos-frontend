@@ -19,6 +19,7 @@ const NOME_RARIDADE = { 1: 'comum', 2: 'rara', 3: 'épica' };
 // =====================================================================
 export function criarElementoCarta(id, idx) {
   const c = CARTA_POR_ID[id];
+  const recurso = RECURSO_DA_COR[c.cor];
   const el = document.createElement('div');
   el.className = `carta cor-${c.cor} raridade-${c.nivel}`;
   el.dataset.idx = idx;
@@ -30,10 +31,11 @@ export function criarElementoCarta(id, idx) {
         <div class="carta-faixa"><span>${c.nome}</span></div>
         <div class="carta-gema" title="${NOME_RARIDADE[c.nivel]}"></div>
         <div class="carta-texto"><span>${descreverCarta(c)}</span></div>
-        <div class="carta-pe">${NOME[c.cor]}</div>
+        <div class="carta-pe"><img src="${ICONE_PX[recurso]}" alt="" draggable="false">${NOME[recurso]}</div>
       </div>
     </div>
-    <div class="custo" title="Custo: ${c.custo} de ${NOME[RECURSO_DA_COR[c.cor]]}"><span>${c.custo}</span></div>
+    <div class="custo" title="Custo: ${c.custo} de ${NOME[recurso]}"><span>${c.custo}</span></div>
+    <div class="selo-recurso" title="Paga com ${NOME[recurso]}"><img src="${ICONE_PX[recurso]}" alt="${NOME[recurso]}" draggable="false"></div>
     <div class="cadeado" title="Recursos insuficientes">🔒</div>`;
   return el;
 }
@@ -72,6 +74,19 @@ export function posicionarMao() {
     el.style.setProperty('--rot', `${off * passoAngulo}deg`);
     el.style.zIndex = 10 + i;
   });
+}
+
+// Carta grande no centro da tela (botão direito).
+export function ampliarCarta(id) {
+  const caixa = $('#carta-zoom');
+  const c = CARTA_POR_ID[id];
+  const el = criarElementoCarta(id, -1);
+  caixa.querySelector('.zoom-carta').replaceChildren(el);
+  caixa.querySelector('.zoom-lore').textContent = c.lore ? `“${c.lore.replace(/\s*\(\*\)\s*$/, '')}”` : '';
+  caixa.classList.remove('oculta');
+}
+export function fecharCartaAmpliada() {
+  $('#carta-zoom').classList.add('oculta');
 }
 
 // =====================================================================
@@ -254,7 +269,7 @@ export function destacarCarta(id, { de = null, descarte = false, segurar = 1100 
   const noCentro = esperar(500);
   const saindo = esperar(500 + segurar);
   const fimP = esperar(total).then(() => el.remove());
-  return { noCentro, saindo, fim: fimP };
+  return { el, noCentro, saindo, fim: fimP };
 }
 
 // =====================================================================

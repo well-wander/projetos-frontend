@@ -613,6 +613,62 @@ export function criarArena(container, aoSom = () => {}) {
     aoSom('lancar');
   }
 
+  // ---- raios de magia caindo do céu ----
+  const raiosAtivos = [];
+  const matRaioNucleo = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false });
+  const matRaioBrilho = new THREE.MeshBasicMaterial({ color: 0x5cc8ff, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending });
+  const luzRaio = new THREE.PointLight(0x8fd8ff, 0, 18);
+  scene.add(luzRaio);
+  function zigue(a, b, desvio, nivel, saida) {
+    if (nivel === 0) { saida.push(b.clone()); return; }
+    const m = a.clone().lerp(b, 0.5).add(new THREE.Vector3((Math.random() - 0.5) * desvio, (Math.random() - 0.5) * desvio * 0.3, (Math.random() - 0.5) * desvio));
+    zigue(a, m, desvio / 2, nivel - 1, saida);
+    zigue(m, b, desvio / 2, nivel - 1, saida);
+  }
+  function malhaRaio(de, para) {
+    const pts = [de.clone()];
+    zigue(de, para, 3.2, 5, pts);
+    const curva = new THREE.CatmullRomCurve3(pts);
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(curva, 64, 0.05, 5, false), matRaioNucleo));
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(curva, 64, 0.2, 6, false), matRaioBrilho));
+    return g;
+  }
+  function raioNoCastelo(idx) {
+    const p = jogadores[idx];
+    const alvo = p.grupo.localToWorld(new THREE.Vector3(0, p.mestra.topo + 0.3, 0));
+    for (let k = 0; k < 3; k++) {
+      const de = alvo.clone().add(new THREE.Vector3((Math.random() - 0.5) * 5, 13 + Math.random() * 3, (Math.random() - 0.5) * 4));
+      raiosAtivos.push({ de, para: alvo.clone().add(new THREE.Vector3((Math.random() - 0.5) * 1.6, -Math.random() * 1.2, (Math.random() - 0.5) * 1.6)), malha: null, vida: 0.55 + k * 0.18, troca: 0, atraso: k * 0.12 });
+    }
+    luzRaio.position.copy(alvo).add(new THREE.Vector3(0, 2, 0));
+    aoSom('raio');
+  }
+  function passoRaios(dt) {
+    let algum = false;
+    for (let i = raiosAtivos.length - 1; i >= 0; i--) {
+      const r = raiosAtivos[i];
+      if (r.atraso > 0) { r.atraso -= dt; continue; }
+      algum = true;
+      r.vida -= dt;
+      r.troca -= dt;
+      if (r.troca <= 0 || !r.malha) {
+        if (r.malha) { scene.remove(r.malha); r.malha.children.forEach((m) => m.geometry.dispose()); }
+        r.malha = malhaRaio(r.de, r.para);
+        scene.add(r.malha);
+        r.troca = 0.07;
+        if (Math.random() < 0.5) particula(r.para.clone(), 0xbfe8ff, new THREE.Vector3((Math.random() - 0.5) * 2, Math.random() * 2, (Math.random() - 0.5) * 2), 0.6, 0.35);
+      }
+      r.malha.visible = Math.random() > 0.2;
+      if (r.vida <= 0) {
+        scene.remove(r.malha);
+        r.malha.children.forEach((m) => m.geometry.dispose());
+        raiosAtivos.splice(i, 1);
+      }
+    }
+    luzRaio.intensity = algum ? 30 + Math.random() * 40 : Math.max(0, luzRaio.intensity - dt * 200);
+  }
+
   // ---- câmera estilo batalha de Pokémon ----
   const camPerto = { pos: new THREE.Vector3(1.5, 5.1, 18.4), alvo: new THREE.Vector3(1.0, 1.9, -2.6) };
   const camLonge = { pos: new THREE.Vector3(1.4, 9.5, 25), alvo: new THREE.Vector3(1.0, 4.4, -2.6) };
@@ -738,6 +794,7 @@ export function criarArena(container, aoSom = () => {}) {
       p.geoPano.attributes.position.needsUpdate = true;
     });
     nuvens.forEach((n, i) => { n.position.x += dt * (0.25 + i * 0.03); if (n.position.x > 45) n.position.x = -45; });
+    passoRaios(dt);
 
     // câmera
     zoomAtual += (zoomDesejado() - zoomAtual) * Math.min(1, dt * 1.2);
@@ -820,7 +877,7 @@ export function criarArena(container, aoSom = () => {}) {
     // Mostra o estado novo. Em ataques, uma pedra (ou orbe mágico) voa antes do dano.
     // Devolve uma Promise que termina quando toda a animação acabou.
     atualizar(estado, opcoes = {}) {
-      const { atacante = null, projetil = false, magia = false, faisca = null, aoImpacto = () => {} } = opcoes;
+      const { atacante = null, projetil = false, magia = false, faisca = null, raio = null, aoImpacto = () => {} } = opcoes;
       const esperas = [];
       let comProjetil = false;
       estado.jogadores.forEach((j, i) => {
@@ -831,6 +888,7 @@ export function criarArena(container, aoSom = () => {}) {
           esperas.push(new Promise((resolve) => {
             lancarProjetil(atacante, i, magia, (pontoImpacto) => {
               aoImpacto();
+              if (raio !== null) raioNoCastelo(raio);
               esperar(sincronizar(i, j, pontoImpacto)).then(resolve);
             });
           }));
@@ -839,6 +897,7 @@ export function criarArena(container, aoSom = () => {}) {
         }
       });
       if (!comProjetil) setTimeout(aoImpacto, 0);
+      if (!comProjetil && raio !== null) raioNoCastelo(raio);
       if (faisca) {
         faiscas(faisca.alvo, faisca.cor);
         esperas.push(esperar(1.4));

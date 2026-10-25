@@ -3,9 +3,11 @@ import { CARTA_POR_ID, RECURSO_DA_COR } from './cartas.js';
 import * as R from './regras.js';
 import { escolherJogada } from './ia.js';
 import { tocar, somAtivo, destravarAudio, musica } from './audio.js';
+import { raiosEm } from './raios.js';
 import {
   $, esperar, criarElementoCarta, renderizarMao, posicionarMao, montarPainel, definirValores, animarValores,
   animarProducao, atualizarCabecalho, faixaDeTurno, mostrarLog, destacarCarta, ajustarEscala, observarLayout,
+  ampliarCarta, fecharCartaAmpliada,
 } from './ui.js';
 
 const CHAVE_OPCOES = 'bravos.opcoes';
@@ -84,6 +86,18 @@ function iniciarMenu() {
   });
 
   iniciarArraste();
+  // botão direito numa carta: abre ela grande no centro
+  document.addEventListener('contextmenu', (e) => {
+    const el = e.target.closest('.carta');
+    if (!el || !el.dataset.id) return;
+    e.preventDefault();
+    if (arraste) return;
+    tocar('clique');
+    ampliarCarta(el.dataset.id);
+  });
+  $('#carta-zoom').addEventListener('pointerdown', (e) => { e.stopPropagation(); fecharCartaAmpliada(); });
+  $('#carta-zoom').addEventListener('contextmenu', (e) => { e.preventDefault(); fecharCartaAmpliada(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharCartaAmpliada(); });
   window.addEventListener('resize', ajustarEscala);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustarEscala);
   observarLayout();
@@ -129,6 +143,7 @@ async function comecarJogo(novoModo) {
   $('#tela-jogo').classList.remove('oculta');
   $('#log').classList.remove('mostra');
   estado.jogadores.forEach((j, i) => montarPainel(i, j, ehBot(i)));
+  document.querySelectorAll('.grupo-magia').forEach((g) => raiosEm(g, { quantos: 1, intervalo: [3500, 8000], espessura: 1.5 }));
   definirValores(estado);
   atualizarCabecalho(estado);
   $('#mao').innerHTML = '';
@@ -184,11 +199,13 @@ const COR_FAISCA = { construcao: 0x8fdc6a, batalha: 0xff8a5c, magia: 0x7cc8ff };
 
 // Como a arena 3D mostra a carta: pedra voando nos ataques, faíscas nas demais.
 function efeitoVisual(carta, quem) {
-  if (ehAtaque(carta)) return { atacante: quem, projetil: true, magia: carta.cor === 'magia' };
+  const raios = carta.cor === 'magia';
+  if (ehAtaque(carta)) return { atacante: quem, projetil: true, magia: raios, raio: raios ? 1 - quem : null };
   const noInimigo = carta.efeitos.some((e) => e.quem === 'ele' || e.op === 'roubo');
   const soConstrucao = carta.efeitos.every((e) => e.op === 'mod' && e.quem === 'eu' && (e.campo === 'castelo' || e.campo === 'muralha'));
-  if (soConstrucao) return {};
-  return { faisca: { alvo: noInimigo ? 1 - quem : quem, cor: COR_FAISCA[carta.cor] } };
+  if (soConstrucao) return raios ? { raio: quem } : {};
+  const alvo = noInimigo ? 1 - quem : quem;
+  return { faisca: { alvo, cor: COR_FAISCA[carta.cor] }, raio: raios ? alvo : null };
 }
 
 async function executar(acao, idx, deRetangulo = null) {
@@ -210,6 +227,7 @@ async function executar(acao, idx, deRetangulo = null) {
 
   tocar(acao === 'jogar' ? 'mostrar' : 'descartar');
   const destaque = destacarCarta(id, { de: deRetangulo, descarte: acao === 'descartar', segurar: acao === 'jogar' ? 1100 : 700 });
+  if (acao === 'jogar' && carta.cor === 'magia') raiosEm(destaque.el, { quantos: 2, intervalo: [150, 500], espessura: 2.4 });
   mostrarLog(estado, jogada);
 
   if (acao === 'jogar') {
@@ -386,6 +404,7 @@ function fimDeJogo() {
 }
 
 iniciarMenu();
+raiosEm(document.querySelector('.capa-raios'), { quantos: 1, intervalo: [1400, 3600], espessura: 3, de: [0.62, 0.62] });
 
 // Para depurar no console: __bravos.estado(), __bravos.render(), __bravos.arena(), __bravos.executar(acao, idx)
 window.__bravos = { estado: () => estado, render: renderizarTudo, R, arena: () => arena, executar };

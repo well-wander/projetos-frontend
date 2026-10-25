@@ -97,6 +97,7 @@ const SONS = {
   vez: (t) => { nota(587, t, 0.12, { tipo: 'square', vol: 0.1, filtro: 2500 }); nota(784, t + 0.13, 0.12, { vol: 0.1, filtro: 2500 }); nota(880, t + 0.26, 0.3, { vol: 0.1, filtro: 2500 }); },
   vitoria: (t) => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => nota(f, t + i * 0.14, 0.28, { vol: 0.2 })); },
   derrota: (t) => { [440, 415, 392, 311].forEach((f, i) => nota(f, t + i * 0.26, 0.42, { tipo: 'sawtooth', vol: 0.15, filtro: 1500 })); },
+  raio: (t) => { chiado(t, 0.5, { vol: 0.5, freq: 3500, tipo: 'highpass' }); chiado(t + 0.05, 0.9, { vol: 0.35, freq: 400 }); nota(60, t, 0.7, { tipo: 'sawtooth', vol: 0.18, deslize: 0.5, filtro: 600 }); },
   nada: () => {},
 };
 

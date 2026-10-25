@@ -349,7 +349,7 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
 
 /* ===================== Carta (estilo Hearthstone, só CSS) ===================== */
 .carta {
-  width: var(--carta-w); height: var(--carta-h); position: relative;
+  width: var(--carta-w); height: calc(var(--carta-w) * 1.38); position: relative;
   container-type: inline-size; -webkit-user-select: none; user-select: none;
 }
 .carta.cor-construcao { --c1: #1f4a22; --c2: #3f8f3a; --c3: #dff2c4; --c4: #8fcf6a; --g1: #b9f59a; --g2: #3fa83a; --g3: #1d5a1c; }
@@ -387,10 +387,20 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   box-shadow: inset 0 0 0 .9cqw #1a0f08, inset 0 0 7cqw rgba(0, 0, 0, .55);
 }
 .carta-arte {
-  width: 80cqw; height: 62cqw; flex: none; border-radius: 50%; position: relative; overflow: hidden;
+  width: 84cqw; height: 60cqw; flex: none; border-radius: 8cqw; position: relative; overflow: hidden;
   display: grid; place-items: center; margin-top: 1cqw;
   background: radial-gradient(ellipse at 50% 85%, var(--c4), transparent 65%), linear-gradient(#ffffff, var(--c3));
   box-shadow: 0 0 0 1.3cqw #1a0f08, 0 0 0 3cqw #dcae55, 0 0 0 3.8cqw #1a0f08, inset 0 -3cqw 6cqw rgba(0, 0, 0, .22);
+}
+/* cantoneiras de metal no retrato */
+.carta-arte::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  --canto: #f6e3a8 0 .9cqw, #a77a2c .9cqw 1.7cqw, transparent 1.8cqw;
+  background:
+    radial-gradient(circle at 4.5cqw 4.5cqw, var(--canto)),
+    radial-gradient(circle at calc(100% - 4.5cqw) 4.5cqw, var(--canto)),
+    radial-gradient(circle at 4.5cqw calc(100% - 4.5cqw), var(--canto)),
+    radial-gradient(circle at calc(100% - 4.5cqw) calc(100% - 4.5cqw), var(--canto));
 }
 .carta-arte .emoji { font-size: 31cqw; line-height: 1; filter: drop-shadow(0 1.6cqw 0 rgba(0, 0, 0, .25)); }
 .carta-arte img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -418,11 +428,21 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   font-size: 8cqw; font-weight: 800; color: #2b1a10; line-height: 1.12;
 }
 .carta-pe {
-  margin-top: 1.8cqw; padding: .5cqw 4cqw .2cqw; border-radius: 99px;
+  display: flex; align-items: center; gap: 1.2cqw;
+  margin-top: 1.8cqw; padding: .4cqw 3.5cqw .2cqw 1.4cqw; border-radius: 99px;
   font-family: var(--fonte-titulo); font-size: 5.6cqw; letter-spacing: .6cqw; color: #fff;
   background: rgba(0, 0, 0, .35); box-shadow: inset 0 0 0 .5cqw rgba(255, 255, 255, .2);
   text-shadow: 0 .5cqw 0 #1a0f08;
 }
+.carta-pe img { width: 7.5cqw; height: 7.5cqw; image-rendering: pixelated; }
+/* selo de aço com o ícone do recurso, preso embaixo da joia de custo */
+.carta .selo-recurso {
+  position: absolute; top: 21cqw; left: 12cqw; z-index: 7; width: 15cqw; height: 15cqw; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #c9d1d9 35%, #7d8894 75%, #4a525c);
+  border: .9cqw solid #1a0f08; box-shadow: 0 1cqw 0 rgba(0, 0, 0, .35), inset 0 0 0 .7cqw rgba(255, 255, 255, .5);
+}
+.carta .selo-recurso img { width: 11cqw; height: 11cqw; image-rendering: pixelated; }
 /* joia do custo, sextavada */
 .carta .custo {
   position: absolute; top: -5cqw; left: -5cqw; z-index: 6; width: 28cqw; height: 31cqw; padding: 1.6cqw;
@@ -441,7 +461,10 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
 .carta .cadeado { position: absolute; right: 9cqw; top: 40cqw; z-index: 6; font-size: 14cqw; display: none; filter: drop-shadow(0 1cqw 0 rgba(0, 0, 0, .5)); }
 
 /* estados */
-.carta.bloqueada .carta-moldura, .carta.bloqueada .custo { filter: grayscale(.85) brightness(.72); }
+/* sem recurso: escurece, mas mantém a cor do pilar, a joia e o selo para dar para identificar */
+.carta.bloqueada .carta-interior { filter: brightness(.6) saturate(.75); }
+.carta.bloqueada .carta-moldura { filter: brightness(.8) saturate(.6); }
+.carta.bloqueada .custo span { color: #ff8a7a; }
 .carta.bloqueada .cadeado { display: block; }
 .mao:not(.travada) .carta.jogavel:not(.espera) .carta-moldura {
   box-shadow: 0 0 0 1cqw #1a0f08, 0 0 0 2.2cqw #4dff6a, 0 0 8cqw 2cqw rgba(77, 255, 106, .75), inset 0 0 0 .8cqw rgba(255, 255, 255, .5), inset 0 0 0 1.9cqw rgba(60, 30, 5, .35);
@@ -461,6 +484,20 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
 }
 .carta-destaque.descartada .carta-moldura { filter: grayscale(.6) brightness(.8); }
 
+/* carta ampliada pelo botão direito */
+.carta-zoom {
+  position: fixed; inset: 0; z-index: 180; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(ellipse at center, rgba(20, 12, 6, .55), rgba(10, 6, 2, .85)); cursor: zoom-out;
+  animation: zoomEntra .18s ease-out;
+}
+.carta-zoom .carta { --carta-w: min(48vh * 0.725, 380px, 78vw); filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .6)); }
+.carta-zoom .zoom-lore {
+  margin: 0; max-width: min(520px, 86vw); text-align: center; color: #f7edd5; font-style: italic; font-size: clamp(15px, 1.3vw, 21px);
+  text-shadow: 0 2px 3px #000;
+}
+.carta-zoom small { color: #c9b896; font-size: 13px; }
+@keyframes zoomEntra { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+
 /* ===================== Overlays ===================== */
 .overlay { position: fixed; inset: 0; z-index: 100; background: rgba(30, 20, 10, .7); display: grid; place-items: center; padding: 16px; }
 .grande-placa { padding: 22px 36px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -479,6 +516,162 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
 .pergaminho p { margin: 0 0 10px; }
 .pergaminho .dica-txt { font-size: 13px; opacity: .8; }
 .pergaminho .btn { display: block; margin: 6px auto 0; }
+
+/* ===================== Tema medieval: madeira, aço, pergaminho e raios ===================== */
+:root {
+  --tex-madeira: url(img/texturas/madeira.jpg);
+  --tex-escura: url(img/texturas/madeira-escura.jpg);
+  --tex-aco: url(img/texturas/aco.jpg);
+  --tex-pergaminho: url(img/texturas/pergaminho.jpg);
+  --aco-borda: linear-gradient(135deg, #eef2f5 0%, #9aa4ae 28%, #d3d9df 50%, #6b747e 76%, #c2cad2 100%);
+  --rebite: radial-gradient(circle at 40% 35%, #ffffff 0 1.4px, #b8c2cc 1.6px 2.6px, #3b434b 3px 3.8px, transparent 4.2px);
+}
+
+/* placas e botões de madeira com cintas de aço */
+.placa, .btn:not(.btn-dica) {
+  background:
+    linear-gradient(90deg, transparent 9px, rgba(0, 0, 0, .35) 9px 10px, #c9d1d8 10px 14px, #6b747e 14px 15px, transparent 15px calc(100% - 15px), #6b747e calc(100% - 15px) calc(100% - 14px), #c9d1d8 calc(100% - 14px) calc(100% - 10px), rgba(0, 0, 0, .35) calc(100% - 10px) calc(100% - 9px), transparent calc(100% - 9px)),
+    linear-gradient(rgba(255, 255, 255, .16), rgba(0, 0, 0, .2)),
+    var(--tex-madeira) center / 360px auto,
+    #a9743f;
+  border: 3px solid #1b120b;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -3px 0 rgba(0, 0, 0, .32), 0 4px 0 #1b120b, 0 8px 14px rgba(0, 0, 0, .4);
+  color: #2b1a10;
+}
+.btn.quadrado {
+  background:
+    var(--rebite) 3px 3px / 10px 10px no-repeat,
+    var(--rebite) calc(100% - 3px) 3px / 10px 10px no-repeat,
+    var(--rebite) 3px calc(100% - 3px) / 10px 10px no-repeat,
+    var(--rebite) calc(100% - 3px) calc(100% - 3px) / 10px 10px no-repeat,
+    linear-gradient(rgba(255, 255, 255, .16), rgba(0, 0, 0, .25)),
+    var(--tex-madeira) center / 220px auto, #a9743f;
+}
+.placa::before, .placa::after {
+  width: 10px; height: 10px; border: 1px solid #1b120b;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #b8c2cc 40%, #4a525c 85%);
+}
+.btn.grande small { color: #3b2412; opacity: .9; }
+.placa.contorno, .btn.contorno { color: #fff; }
+
+/* tampo da mesa em madeira escura */
+#tela-jogo {
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 30%, rgba(0, 0, 0, .55) 100%),
+    var(--tex-escura) center / 520px auto, #3d2614;
+}
+
+/* painéis: pergaminho numa moldura de aço rebitada */
+.painel {
+  border: 10px solid transparent; border-radius: 14px;
+  background:
+    linear-gradient(rgba(255, 250, 235, .2), rgba(120, 80, 30, .12)) padding-box,
+    var(--tex-pergaminho) center / 420px auto padding-box,
+    var(--rebite) 1px 1px / 10px 10px no-repeat border-box,
+    var(--rebite) calc(100% - 1px) 1px / 10px 10px no-repeat border-box,
+    var(--rebite) 1px calc(100% - 1px) / 10px 10px no-repeat border-box,
+    var(--rebite) calc(100% - 1px) calc(100% - 1px) / 10px 10px no-repeat border-box,
+    var(--rebite) 50% 1px / 10px 10px no-repeat border-box,
+    var(--rebite) 50% calc(100% - 1px) / 10px 10px no-repeat border-box,
+    var(--aco-borda) border-box;
+  box-shadow: 0 0 0 2px #1b120b, inset 0 0 0 2px #1b120b, inset 0 0 18px rgba(120, 80, 30, .35), 0 10px 22px rgba(0, 0, 0, .5);
+}
+.painel.ativo { box-shadow: 0 0 0 2px #1b120b, 0 0 0 6px var(--amarelo), 0 0 26px 8px rgba(255, 212, 59, .6), inset 0 0 0 2px #1b120b; }
+.stat.destaque {
+  background: linear-gradient(rgba(255, 255, 255, .14), rgba(0, 0, 0, .18)), var(--tex-madeira) center / 300px auto, #a9743f;
+  border: 2px solid #1b120b;
+}
+.grupo { position: relative; }
+.grupo-batalha {
+  background:
+    linear-gradient(rgba(220, 100, 80, .22), rgba(220, 100, 80, .1)),
+    var(--tex-aco) center / 200px auto;
+  background-blend-mode: multiply;
+}
+.grupo-magia {
+  background: linear-gradient(rgba(90, 160, 240, .32), rgba(40, 110, 210, .16));
+  box-shadow: inset 0 0 14px rgba(80, 170, 255, .45);
+  animation: magiaPulsa 3.2s ease-in-out infinite;
+}
+@keyframes magiaPulsa { 50% { box-shadow: inset 0 0 22px rgba(120, 200, 255, .75), 0 0 10px rgba(80, 170, 255, .45); } }
+
+/* arena: moldura de madeira escura com cantoneiras de aço */
+.cenario {
+  border: 14px solid transparent; border-radius: 18px;
+  background:
+    linear-gradient(#6fb6ea, #cfe9f7 55%, #74b345 55%) padding-box,
+    var(--rebite) 9px 9px / 10px 10px no-repeat border-box,
+    var(--rebite) calc(100% - 9px) 9px / 10px 10px no-repeat border-box,
+    var(--rebite) 9px calc(100% - 9px) / 10px 10px no-repeat border-box,
+    var(--rebite) calc(100% - 9px) calc(100% - 9px) / 10px 10px no-repeat border-box,
+    var(--aco-borda) 0 0 / 28px 28px no-repeat border-box,
+    var(--aco-borda) 100% 0 / 28px 28px no-repeat border-box,
+    var(--aco-borda) 0 100% / 28px 28px no-repeat border-box,
+    var(--aco-borda) 100% 100% / 28px 28px no-repeat border-box,
+    linear-gradient(rgba(255, 255, 255, .08), rgba(0, 0, 0, .25)) border-box,
+    var(--tex-escura) center / 300px auto border-box;
+  box-shadow: 0 0 0 2px #1b120b, inset 0 0 0 2px #1b120b, 0 12px 26px rgba(0, 0, 0, .55);
+}
+
+/* trilho de aço em cima da mão */
+.mao-area {
+  background:
+    linear-gradient(#e3e8ec, #8d97a1 45%, #4a525c) top / 100% 7px no-repeat,
+    linear-gradient(rgba(0, 0, 0, .1), rgba(10, 5, 2, .55));
+  border-top: 2px solid #1b120b;
+}
+
+.faixa-turno span { background: linear-gradient(rgba(255, 255, 255, .14), rgba(0, 0, 0, .2)), var(--tex-madeira) center / 360px auto, #a9743f; }
+.log { background: linear-gradient(rgba(255, 250, 235, .55), rgba(255, 250, 235, .55)), var(--tex-pergaminho) center / 360px auto; }
+.pergaminho, .opcoes { background: var(--tex-pergaminho) center / 420px auto, #f3e8cb; }
+
+/* raios azuis (svg criado por js/raios.js) */
+.raios {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: visible;
+  opacity: 0; filter: drop-shadow(0 0 3px #5cc8ff) drop-shadow(0 0 9px #2f86e0);
+}
+.raios path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.raios .brilho { stroke: #6fd0ff; opacity: .55; }
+.raios .nucleo { stroke: #ffffff; }
+.carta-destaque .raios { z-index: 10; }
+
+/* ===================== Tela inicial ===================== */
+#tela-menu { padding: 0; overflow: hidden; background: #1b120b; display: block; }
+.capa {
+  position: absolute; inset: -2%; background: url(img/capa.jpg) center 40% / cover;
+  animation: capaRespira 26s ease-in-out infinite alternate;
+}
+.capa::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(rgba(10, 6, 2, .35) 0%, transparent 24%, transparent 58%, rgba(14, 8, 3, .82) 100%),
+    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, .5) 100%);
+}
+@keyframes capaRespira { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
+.capa-raios { position: absolute; right: 0; top: 0; width: 42%; height: 62%; }
+#tela-menu .menu-caixa {
+  position: relative; z-index: 1; width: 100%; height: 100%; max-width: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 2vh;
+  padding: clamp(10px, 3vh, 34px) 16px clamp(14px, 3.5vh, 40px);
+}
+#tela-menu .arte-logo {
+  max-width: min(640px, 78vw, 64vh); filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .6));
+  animation: logoFlutua 5s ease-in-out infinite;
+}
+@keyframes logoFlutua { 50% { transform: translateY(-8px) rotate(-.6deg); } }
+.menu-rodape { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+#tela-menu .menu-botoes { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; max-width: none; gap: clamp(10px, 1.4vw, 22px); }
+#tela-menu .menu-botoes .btn { width: auto; }
+#tela-menu .menu-botoes .btn.grande { min-width: clamp(220px, 19vw, 320px); padding: .55em 1.4em .45em; }
+#tela-menu #btn-ajuda-menu { align-self: center; }
+#tela-menu .opcoes {
+  border: 3px solid #1b120b; border-radius: 12px; box-shadow: 0 0 0 3px #8d97a1, 0 0 0 5px #1b120b, 0 8px 16px rgba(0, 0, 0, .5);
+}
+@media (max-width: 700px) {
+  #tela-menu .menu-botoes { flex-direction: column; align-items: center; }
+  #tela-menu .menu-botoes .btn.grande { min-width: 78vw; }
+  .capa { background-position: 30% 40%; }
+}
 
 /* ===================== Responsivo ===================== */
 @media (max-width: 900px) {

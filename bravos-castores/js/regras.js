@@ -3,7 +3,8 @@ import { CARTAS, RECURSO_DA_COR, RECURSOS, TRABALHADORES } from './cartas.js';
 
 export const META_CASTELO = 100;
 export const TAMANHO_MAO = 8;
-export const PESO_POR_NIVEL = { 1: 6, 2: 3, 3: 1 };
+export const BONUS_SEGUNDO = 4;
+export const PESO_POR_NIVEL = { 1: 5, 2: 4, 3: 3 };
 
 // Gerador de números aleatórios com semente (mulberry32), para os testes serem repetíveis.
 export function criarRng(semente = Date.now()) {
@@ -31,10 +32,10 @@ export function novoJogador(nome) {
   return {
     nome,
     castelo: 30,
-    muralha: 10,
-    construtores: 2,
-    soldados: 2,
-    magos: 2,
+    muralha: 15,
+    construtores: 3,
+    soldados: 3,
+    magos: 3,
     madeira: 5,
     armas: 5,
     cristais: 5,
@@ -54,6 +55,11 @@ export function novoJogo({ nomes = ['Jogador 1', 'Jogador 2'], semente } = {}) {
     rng,
   };
   for (const j of estado.jogadores) completarMao(estado, j);
+  // quem joga depois começa com um pouco mais, para compensar a vantagem de sair na frente
+  const segundo = estado.jogadores[1];
+  segundo.madeira += BONUS_SEGUNDO;
+  segundo.armas += BONUS_SEGUNDO;
+  segundo.cristais += BONUS_SEGUNDO;
   produzir(estado.jogadores[0]);
   return estado;
 }
