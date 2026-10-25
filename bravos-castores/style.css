@@ -891,3 +891,135 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   .castor { width: 84px; height: 96px; }
   .btn { font-size: 15px; }
 }
+
+/* =====================================================================
+   Tema v3: moldura em imagem (img/moldura.webp, gerada no ChatGPT)
+   No computador a tela de jogo vira um palco 3:2 com a moldura por cima
+   da arena 3D. Cada peça é posicionada nas coordenadas da imagem
+   (1536 x 1024) com --x/--y/--w/--h, multiplicadas por --u.
+   No celular e em telas estreitas continua o layout de antes.
+   ===================================================================== */
+.moldura-img { display: none; }
+
+@media (min-width: 901px) and (min-aspect-ratio: 6/5) {
+  body { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .7)), var(--tex-escura) center / 520px auto, #24160b; }
+
+  #tela-jogo {
+    --palco-w: min(100vw, 150vh);
+    --u: calc(var(--palco-w) / 1536);
+    --carta-w: calc(172 * var(--u));
+    --carta-h: calc(var(--carta-w) * 1.38);
+    inset: 0; margin: auto; width: var(--palco-w); height: calc(var(--palco-w) / 1.5);
+    display: block; padding: 0; gap: 0; overflow: hidden;
+    background: #2a1a0e; box-shadow: 0 0 50px rgba(0, 0, 0, .8);
+  }
+  #tela-jogo .moldura-img {
+    display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: url(img/moldura.webp) 0 0 / 100% 100% no-repeat;
+  }
+
+  /* posicionamento em unidades da imagem */
+  #tela-jogo :is(.topo > :not(.topo-dir), .topo-dir > *, .painel, .avatar, .nome, .stat, .cenario, .mao-area, .mao, .ajuda-arraste, .btn-dica) {
+    position: absolute; margin: 0; right: auto; bottom: auto;
+    left: calc(var(--x) * var(--u)); top: calc(var(--y) * var(--u));
+    width: calc(var(--w) * var(--u)); height: calc(var(--h) * var(--u));
+  }
+  #tela-jogo :is(.mesa, .topo-dir, .painel-cabeca, .defesa, .grupo) { display: contents; }
+  #tela-jogo :is(.flamula-topo, .flamula) { display: none; }
+
+  /* ---- topo ---- */
+  #tela-jogo .topo {
+    position: absolute; left: 0; top: 0; width: 100%; height: calc(84 * var(--u)); z-index: 5;
+    margin: 0; padding: 0; display: block; background: none; border: 0; box-shadow: none;
+  }
+  #tela-jogo .topo :is(.btn, .placa) {
+    background: none; border: 0; box-shadow: none; padding: 0; border-radius: calc(10 * var(--u));
+    display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  }
+  #tela-jogo .topo .btn:hover { background: rgba(255, 240, 200, .18); filter: none; }
+  #btn-menu { --x: 20; --y: 8; --w: 80; --h: 68; }
+  #btn-musica { --x: 1255; --y: 6; --w: 82; --h: 70; }
+  #btn-som { --x: 1345; --y: 6; --w: 82; --h: 70; }
+  #btn-ajuda { --x: 1436; --y: 6; --w: 80; --h: 70; }
+  #tela-jogo .btn.quadrado { font-size: calc(34 * var(--u)); color: #3b2412; text-shadow: 0 1px 0 rgba(255, 240, 200, .6); }
+  #turno { --x: 112; --y: 6; --w: 193; --h: 72; }
+  #vez { --x: 318; --y: 6; --w: 296; --h: 70; }
+  #tela-jogo #turno { font-size: calc(30 * var(--u)); color: #3b2412; letter-spacing: 1px; text-shadow: 0 2px 0 rgba(255, 240, 200, .55); }
+  #tela-jogo #vez { font-size: calc(21 * var(--u)); padding: 0 calc(20 * var(--u)); gap: calc(7 * var(--u)); letter-spacing: .5px; }
+  #tela-jogo #vez > span { overflow: hidden; text-overflow: ellipsis; }
+  #tela-jogo #vez[data-jogador="0"] { background: url(img/placa-vez-verde.webp) 0 0 / 100% 100%; }
+  #tela-jogo #vez[data-jogador="1"] { background: url(img/placa-vez-vermelha.webp) 0 0 / 100% 100%; }
+
+  /* ---- painéis ---- */
+  #tela-jogo .painel {
+    --x: 10; --y: 82; --w: 342; --h: 672; z-index: 3;
+    display: block; padding: 0; border: 0; border-radius: calc(16 * var(--u)); overflow: visible;
+    background: none; box-shadow: none; font-size: calc(20 * var(--u));
+  }
+  #tela-jogo #painel-1 { --x: 1185; }
+  #tela-jogo .painel.ativo { box-shadow: 0 0 0 calc(4 * var(--u)) #ffd43b, 0 0 calc(30 * var(--u)) calc(8 * var(--u)) rgba(255, 212, 59, .55); }
+  #tela-jogo .avatar { --x: 36; --y: 44; --w: 84; --h: 84; border: 0; box-shadow: none; font-size: calc(44 * var(--u)); background: radial-gradient(#a6dc8f, #4c9a40); }
+  #tela-jogo #painel-1 .avatar { --x: 41; background: radial-gradient(#f2a197, #c0453a); }
+  #tela-jogo .nome {
+    --x: 132; --y: 50; --w: 118; --h: 80;
+    display: flex; flex-direction: column; justify-content: center;
+    font-size: calc(22 * var(--u)); color: #3b2412; line-height: 1.05;
+    white-space: normal; overflow-wrap: anywhere; overflow: hidden;
+  }
+  #tela-jogo .nome small { font-size: calc(15 * var(--u)); color: #6b4a2c; opacity: 1; margin-top: calc(4 * var(--u)); }
+
+  #tela-jogo .stat {
+    display: grid; grid-template-columns: calc(44 * var(--u)) minmax(0, 1fr) auto; align-items: center; gap: calc(6 * var(--u));
+    padding: 0 calc(10 * var(--u)) 0 calc(6 * var(--u)); border: 0; border-radius: calc(8 * var(--u));
+    background: none; box-shadow: none; font-size: calc(22 * var(--u));
+  }
+  #tela-jogo .stat .ico img { width: calc(40 * var(--u)); height: calc(40 * var(--u)); }
+  #tela-jogo .stat .rot { font-family: var(--fonte-titulo); font-weight: 400; letter-spacing: .5px; color: #3b2412; }
+  #tela-jogo .stat .val {
+    display: flex; align-items: center; justify-content: center; padding: 0; min-width: 0; background: none; box-shadow: none;
+    font-size: calc(28 * var(--u)); color: #fff; text-shadow: 0 2px 0 #000;
+  }
+  #tela-jogo :is(.stat.destaque, .stat.recurso) .val { width: calc(59 * var(--u)); height: calc(41 * var(--u)); padding-top: calc(4 * var(--u)); }
+  #tela-jogo .stat.gerador .rot small { display: none; }
+  #tela-jogo .stat.gerador .val { font-size: calc(30 * var(--u)); }
+  #tela-jogo .stat.gerador .rot, #tela-jogo .stat.gerador .val { color: #fff; }
+  #tela-jogo .stat.gerador.produzindo { animation: produzPalco .9s ease-in-out 2; }
+
+  #tela-jogo [data-linha="castelo"] { --x: 36; --y: 147; --w: 272; --h: 55; }
+  #tela-jogo [data-linha="muralha"] { --x: 36; --y: 212; --w: 272; --h: 56; }
+  #tela-jogo [data-linha="construtores"] { --x: 34; --y: 283; --w: 274; --h: 49; }
+  #tela-jogo [data-linha="madeira"] { --x: 40; --y: 331; --w: 264; --h: 62; }
+  #tela-jogo [data-linha="soldados"] { --x: 34; --y: 406; --w: 274; --h: 48; }
+  #tela-jogo [data-linha="armas"] { --x: 40; --y: 454; --w: 264; --h: 61; }
+  #tela-jogo [data-linha="magos"] { --x: 34; --y: 528; --w: 274; --h: 50; }
+  #tela-jogo [data-linha="cristais"] { --x: 40; --y: 576; --w: 264; --h: 60; }
+  #tela-jogo .stat.gerador { padding-right: calc(16 * var(--u)); }
+
+  /* ---- arena: o canvas passa um pouco por baixo da moldura ---- */
+  #tela-jogo .cenario {
+    --x: 368; --y: 98; --w: 800; --h: 634; z-index: 1;
+    border: 0; border-radius: 0; box-shadow: none;
+    background: linear-gradient(#6fb6ea, #cfe9f7 55%, #74b345 55%);
+  }
+  #tela-jogo .log { top: calc(26 * var(--u)); font-size: calc(19 * var(--u)); }
+  body[data-zona="jogar"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(14 * var(--u)) #5dff6c, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(93, 255, 108, .45); }
+  body[data-zona="negado"] #tela-jogo .cenario { box-shadow: inset 0 0 0 calc(14 * var(--u)) #ff5a4a, inset 0 0 calc(70 * var(--u)) calc(16 * var(--u)) rgba(255, 90, 74, .4); }
+  #tela-jogo .aviso-jogar { font-size: calc(36 * var(--u)); }
+
+  /* ---- prateleira da mão ---- */
+  #tela-jogo .mao-area { --x: 0; --y: 765; --w: 1536; --h: 259; z-index: 6; background: none; }
+  #tela-jogo .mao { --x: 300; --y: 0; --w: 936; --h: 259; }
+  #tela-jogo .mao .carta { bottom: calc(var(--carta-h) * -0.08); }
+  #tela-jogo .ajuda-arraste {
+    --x: 12; --y: 147; --w: 283; --h: 91; max-width: none; opacity: 1;
+    padding: 0 calc(22 * var(--u)); gap: calc(14 * var(--u)); font-size: calc(15 * var(--u)); line-height: 1.25;
+  }
+  #tela-jogo .verso-carta { width: calc(30 * var(--u)); height: calc(41 * var(--u)); }
+  #tela-jogo .btn-dica {
+    --x: 1245; --y: 147; --w: 275; --h: 91;
+    background: none; border: 0; box-shadow: none; padding: 0; justify-content: center;
+    font-size: calc(36 * var(--u)); color: #3b2412; text-shadow: 0 2px 0 rgba(255, 245, 200, .6);
+  }
+  #tela-jogo .btn-dica:hover:not(:disabled) { background: rgba(255, 255, 255, .15); filter: none; }
+}
+@keyframes produzPalco { 50% { box-shadow: 0 0 0 3px #ffe066, 0 0 18px 4px rgba(255, 212, 59, .8); } }
