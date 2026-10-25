@@ -71,101 +71,165 @@ function texturaPedra(base, escuro, claro) {
 }
 
 function texturaTelha(cor, escura) {
-  const [c, g] = canvas(64);
-  g.fillStyle = hex(cor);
-  g.fillRect(0, 0, 64, 64);
+  const [c, g] = canvas(128);
   g.fillStyle = hex(escura);
-  for (let y = 0; y < 64; y += 10) {
-    g.fillRect(0, y + 7, 64, 3);
-    for (let x = (y / 10) % 2 ? 0 : 8; x < 64; x += 16) g.fillRect(x, y, 2, 8);
+  g.fillRect(0, 0, 128, 128);
+  // telhas escamadas, fileiras desencontradas
+  const alt = 16;
+  for (let linha = 0; linha < 9; linha++) {
+    const y = linha * alt - 4;
+    const desloc = (linha % 2) * 8;
+    for (let x = -16 + desloc; x < 144; x += 16) {
+      g.fillStyle = hex(cor);
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(x + 16, y);
+      g.lineTo(x + 16, y + alt * 0.6);
+      g.arc(x + 8, y + alt * 0.6, 8, 0, Math.PI);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = '#1b120b';
+      g.lineWidth = 2;
+      g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.22)';
+      g.fillRect(x + 3, y + 2, 4, alt * 0.5);
+    }
   }
   return texturaDe(c);
 }
 
 // casca da tora: veios no sentido do comprimento e contorno escuro nas pontas
 function texturaCasca(base, escuro) {
-  const [c, g] = canvas(64);
+  const [c, g] = canvas(128);
   g.fillStyle = base;
-  g.fillRect(0, 0, 64, 64);
-  g.strokeStyle = escuro;
-  for (let i = 0; i < 9; i++) {
-    const x = 3 + i * 7 + Math.random() * 3;
-    g.lineWidth = 2 + Math.random() * 2;
+  g.fillRect(0, 0, 128, 128);
+  // veios ao longo da tora
+  for (let i = 0; i < 16; i++) {
+    const x = 2 + i * 8 + Math.random() * 4;
+    g.strokeStyle = escuro;
+    g.globalAlpha = 0.55 + Math.random() * 0.4;
+    g.lineWidth = 1.5 + Math.random() * 2.5;
     g.beginPath();
     g.moveTo(x, 0);
-    g.bezierCurveTo(x + 3, 20, x - 3, 44, x + 1, 64);
+    g.bezierCurveTo(x + 5, 40, x - 5, 88, x + 2, 128);
     g.stroke();
   }
-  g.fillStyle = 'rgba(255,255,255,.18)';
-  g.fillRect(0, 0, 64, 5);
+  g.globalAlpha = 1;
+  // nós da madeira
+  for (let i = 0; i < 2; i++) {
+    const x = 20 + Math.random() * 88;
+    const y = 25 + Math.random() * 78;
+    g.fillStyle = escuro;
+    g.beginPath(); g.ellipse(x, y, 5, 9, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = base;
+    g.lineWidth = 1.5;
+    g.beginPath(); g.ellipse(x, y, 2.5, 5, 0, 0, Math.PI * 2); g.stroke();
+  }
+  // faixa de brilho e sombra (dá volume na tora)
+  const luz = g.createLinearGradient(0, 0, 128, 0);
+  luz.addColorStop(0, 'rgba(0,0,0,.28)');
+  luz.addColorStop(0.35, 'rgba(255,255,255,.12)');
+  luz.addColorStop(0.5, 'rgba(255,255,255,.2)');
+  luz.addColorStop(1, 'rgba(0,0,0,.3)');
+  g.fillStyle = luz;
+  g.fillRect(0, 0, 128, 128);
+  // contorno nas pontas da tora
   g.fillStyle = '#2b1a10';
-  g.fillRect(0, 0, 64, 3);
-  g.fillRect(0, 61, 64, 3);
+  g.fillRect(0, 0, 128, 5);
+  g.fillRect(0, 123, 128, 5);
   return texturaDe(c);
 }
 
 // ponta da tora: anéis concêntricos com contorno grosso
 function texturaAneis(claro, escuro) {
-  const [c, g] = canvas(64);
+  const [c, g] = canvas(128);
   g.fillStyle = '#2b1a10';
-  g.fillRect(0, 0, 64, 64);
+  g.fillRect(0, 0, 128, 128);
+  g.fillStyle = escuro;
+  g.beginPath(); g.arc(64, 64, 60, 0, Math.PI * 2); g.fill();
   g.fillStyle = claro;
-  g.beginPath();
-  g.arc(32, 32, 27, 0, Math.PI * 2);
-  g.fill();
+  g.beginPath(); g.arc(64, 64, 50, 0, Math.PI * 2); g.fill();
   g.strokeStyle = escuro;
-  g.lineWidth = 2;
-  for (const r of [7, 13, 19]) {
+  for (const r of [10, 18, 26, 34, 42]) {
+    g.lineWidth = 1.5 + Math.random() * 1.5;
+    g.globalAlpha = 0.7;
     g.beginPath();
-    g.arc(32 + Math.random() * 2 - 1, 32 + Math.random() * 2 - 1, r, 0, Math.PI * 2);
+    g.arc(64 + Math.random() * 3 - 1.5, 64 + Math.random() * 3 - 1.5, r, 0, Math.PI * 2);
     g.stroke();
   }
-  g.fillStyle = escuro;
+  g.globalAlpha = 1;
+  // rachadura do centro para fora
+  g.lineWidth = 2.5;
   g.beginPath();
-  g.arc(32, 32, 2.5, 0, Math.PI * 2);
-  g.fill();
+  g.moveTo(64, 64);
+  g.lineTo(64 + 20, 64 - 30);
+  g.lineTo(64 + 26, 64 - 44);
+  g.stroke();
+  g.fillStyle = escuro;
+  g.beginPath(); g.arc(64, 64, 4, 0, Math.PI * 2); g.fill();
   return texturaDe(c);
 }
 
 function texturaGrama() {
-  const [c, g] = canvas(128);
-  const tons = ['#7cbc4b', '#74b345'];
-  for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
-    g.fillStyle = tons[(x + y) % 2];
-    g.fillRect(x * 64, y * 64, 64, 64);
+  const [c, g] = canvas(256);
+  g.fillStyle = '#78b847';
+  g.fillRect(0, 0, 256, 256);
+  // manchas claras e escuras
+  for (let i = 0; i < 26; i++) {
+    g.fillStyle = Math.random() < 0.5 ? 'rgba(70,130,40,.35)' : 'rgba(160,210,90,.3)';
+    g.beginPath();
+    g.ellipse(Math.random() * 256, Math.random() * 256, 14 + Math.random() * 30, 8 + Math.random() * 18, Math.random() * 3, 0, Math.PI * 2);
+    g.fill();
   }
-  for (let i = 0; i < 260; i++) {
-    const x = Math.random() * 128;
-    const y = Math.random() * 128;
-    g.strokeStyle = Math.random() < 0.6 ? '#5c9a35' : '#9ad464';
-    g.lineWidth = 1.5;
+  // folhinhas
+  for (let i = 0; i < 700; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 256;
+    g.strokeStyle = Math.random() < 0.65 ? '#4f8f2c' : '#a6dc6c';
+    g.lineWidth = 1.6;
     g.beginPath();
     g.moveTo(x, y);
-    g.lineTo(x + (Math.random() * 4 - 2), y - 3 - Math.random() * 4);
+    g.lineTo(x + (Math.random() * 4 - 2), y - 3 - Math.random() * 5);
     g.stroke();
   }
-  return texturaDe(c, 70);
+  // florzinhas
+  for (let i = 0; i < 14; i++) {
+    g.fillStyle = ['#ffffff', '#ffe066', '#ffb3c8'][i % 3];
+    g.beginPath();
+    g.arc(Math.random() * 256, Math.random() * 256, 1.8, 0, Math.PI * 2);
+    g.fill();
+  }
+  return texturaDe(c, 45);
 }
 
 function texturaPlataforma() {
-  const [c, g] = canvas(256);
+  const [c, g] = canvas(512);
   g.fillStyle = '#6aa83f';
-  g.fillRect(0, 0, 256, 256);
-  const grad = g.createRadialGradient(128, 128, 30, 128, 128, 128);
-  grad.addColorStop(0, '#dcb57a');
-  grad.addColorStop(0.8, '#cfa465');
-  grad.addColorStop(0.88, '#a77a45');
+  g.fillRect(0, 0, 512, 512);
+  const grad = g.createRadialGradient(256, 256, 60, 256, 256, 256);
+  grad.addColorStop(0, '#e2bd82');
+  grad.addColorStop(0.78, '#d1a66a');
+  grad.addColorStop(0.87, '#a77a45');
   grad.addColorStop(0.93, '#6b4a2a');
   grad.addColorStop(1, '#6b4a2a');
   g.fillStyle = grad;
-  g.beginPath();
-  g.arc(128, 128, 128, 0, Math.PI * 2);
-  g.fill();
-  for (let i = 0; i < 140; i++) {
+  g.beginPath(); g.arc(256, 256, 256, 0, Math.PI * 2); g.fill();
+  // pedrinhas e marcas na terra
+  for (let i = 0; i < 260; i++) {
     const a = Math.random() * Math.PI * 2;
-    const r = Math.random() * 100;
+    const r = Math.random() * 205;
     g.fillStyle = Math.random() < 0.5 ? 'rgba(120,80,40,.35)' : 'rgba(255,240,200,.35)';
-    g.fillRect(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 3, 2);
+    g.fillRect(256 + Math.cos(a) * r, 256 + Math.sin(a) * r, 4, 3);
+  }
+  // anel de pedras na borda
+  for (let i = 0; i < 70; i++) {
+    const a = (i / 70) * Math.PI * 2 + Math.random() * 0.05;
+    const r = 228 + Math.random() * 10;
+    const x = 256 + Math.cos(a) * r;
+    const y = 256 + Math.sin(a) * r;
+    g.fillStyle = ['#b9b1a3', '#9c968b', '#cfc8ba'][i % 3];
+    g.beginPath(); g.ellipse(x, y, 9, 6, a, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#2b1a10'; g.lineWidth = 2; g.stroke();
   }
   return texturaDe(c);
 }
@@ -326,6 +390,103 @@ export function criarArena(container, aoSom = () => {}) {
     nuvens.push(g);
   }
 
+
+  // ---- adereços do cenário: cercas, tocos, arbustos, riacho e flores ----
+  const matCerca = toon(0x8a5a2c);
+  function cerca(x1, z1, x2, z2) {
+    const n = Math.max(3, Math.round(Math.hypot(x2 - x1, z2 - z1) / 0.42));
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const alt = 1.1 + rnd() * 0.5;
+      const poste = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, alt, 7), matCerca);
+      poste.position.set(x1 + (x2 - x1) * t, alt / 2, z1 + (z2 - z1) * t);
+      poste.rotation.z = (rnd() - 0.5) * 0.12;
+      poste.castShadow = true;
+      contornar(poste, 0.12);
+      const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.32, 7), matCerca);
+      ponta.position.y = alt / 2 + 0.16;
+      contornar(ponta, 0.12);
+      poste.add(ponta);
+      scene.add(poste);
+    }
+    for (const y of [0.35, 0.8]) {
+      const trilho = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(x2 - x1, z2 - z1), 0.1, 0.08), matCerca);
+      trilho.position.set((x1 + x2) / 2, y, (z1 + z2) / 2);
+      trilho.rotation.y = -Math.atan2(z2 - z1, x2 - x1);
+      contornar(trilho, 0.15);
+      scene.add(trilho);
+    }
+  }
+  cerca(-9.6, 1.8, -8.8, -1.6);
+  cerca(8.4, 3.0, 10.9, 0.6);
+
+  const matToco = toon(0x7a4e28);
+  const matTopoToco = toon(0xffffff, { map: texturaAneis('#e6bb84', '#6e4421') });
+  [[2.4, 4.6, 0.42], [-1.4, -12.5, 0.5], [7.4, 1.6, 0.38], [-9.2, 3.4, 0.5]].forEach(([x, z, r]) => {
+    const toco = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.15, 0.5, 10), [matToco, matTopoToco, matToco]);
+    toco.position.set(x, 0.25, z);
+    toco.castShadow = true;
+    contornar(toco, 0.08);
+    scene.add(toco);
+  });
+
+  const matArbusto = toon(0x3f8f34);
+  const matArbusto2 = toon(0x5fae45);
+  [[-8.4, 5.6], [7.8, -0.6], [-3.4, -9.8], [9.6, -8.4], [1.9, 6.3], [-9.6, -3.6], [6.0, 3.6]].forEach(([x, z], i) => {
+    const g = new THREE.Group();
+    [[0, 0.35, 0, 0.5], [0.45, 0.28, 0.1, 0.38], [-0.4, 0.26, -0.05, 0.36]].forEach(([dx, dy, dz, r], k) => {
+      const b = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), k ? matArbusto2 : matArbusto);
+      b.position.set(dx, dy, dz);
+      b.castShadow = true;
+      contornar(b, 0.07);
+      g.add(b);
+    });
+    g.position.set(x, 0, z);
+    g.rotation.y = i;
+    scene.add(g);
+  });
+
+  // riacho no canto da frente, com margem de areia
+  function faixaNoChao(pontos, largura, cor, y) {
+    const esq = [];
+    const dir = [];
+    for (let i = 0; i < pontos.length; i++) {
+      const a = pontos[Math.max(0, i - 1)];
+      const b = pontos[Math.min(pontos.length - 1, i + 1)];
+      const nx = -(b[1] - a[1]);
+      const nz = b[0] - a[0];
+      const l = Math.hypot(nx, nz) || 1;
+      esq.push(new THREE.Vector2(pontos[i][0] + (nx / l) * largura, pontos[i][1] + (nz / l) * largura));
+      dir.push(new THREE.Vector2(pontos[i][0] - (nx / l) * largura, pontos[i][1] - (nz / l) * largura));
+    }
+    const forma = new THREE.Shape([...esq, ...dir.reverse()]);
+    const malha = new THREE.Mesh(new THREE.ShapeGeometry(forma), toon(cor, { side: THREE.DoubleSide }));
+    malha.rotation.x = Math.PI / 2;
+    malha.position.y = y;
+    malha.receiveShadow = true;
+    scene.add(malha);
+    return malha;
+  }
+  const curso = [[2.6, 11], [4.4, 8.9], [6.4, 7.6], [8.4, 6.6], [10.2, 5.0], [12.2, 3.6], [15.5, 2.6]];
+  faixaNoChao(curso, 1.25, 0xd8c08a, 0.015);
+  faixaNoChao(curso, 0.85, 0x4fa8e0, 0.03);
+  faixaNoChao(curso.map(([x, z]) => [x - 0.15, z - 0.1]), 0.25, 0xbfe6ff, 0.045);
+
+  // flores espalhadas
+  const geoFlor = new THREE.SphereGeometry(0.07, 6, 4);
+  const matsFlor = [toon(0xffffff), toon(0xffe066), toon(0xffa6c1)];
+  for (let i = 0; i < 90; i++) {
+    const x = -14 + rnd() * 28;
+    const z = -14 + rnd() * 26;
+    if (Math.hypot(x + 3.6, z - 4.4) < 5 || Math.hypot(x - 4.2, z + 5.6) < 5) continue; // fora das plataformas
+    const f = new THREE.Mesh(geoFlor, matsFlor[i % 3]);
+    f.position.set(x, 0.07, z);
+    scene.add(f);
+  }
+
+  // mais pinheiros nas laterais, emoldurando a cena
+  [[-11.5, 6.5], [-13, 1], [-12, -5], [12.5, 2], [13.5, -3.5], [11.5, -10], [-8.5, -11], [10, 10.5]].forEach(([x, z]) => arvore(x, z, 1.1 + rnd() * 0.5));
+
   // ---- materiais e geometrias dos castelos ----
   // castelos de toras: cada bloco é uma tora deitada (casca nas laterais, anéis nas pontas)
   const geoTora = new THREE.CylinderGeometry(H * 0.5, H * 0.5, S * 1.06, 12);
@@ -464,7 +625,7 @@ export function criarArena(container, aoSom = () => {}) {
       beiral.castShadow = true;
       contornar(beiral, 0.06);
       t.tampa.add(beiral);
-      const telhado = new THREE.Mesh(new THREE.ConeGeometry(0.82, 1.35, 12), matTelha);
+      const telhado = new THREE.Mesh(new THREE.ConeGeometry(0.84, 1.45, 16, 3), matTelha);
       telhado.position.y = 0.14 + 0.675;
       telhado.castShadow = true;
       contornar(telhado, 0.06);

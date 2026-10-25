@@ -56,6 +56,7 @@
   <!-- ============ JOGO ============ -->
   <section id="tela-jogo" class="tela oculta">
     <header class="topo">
+      <div class="flamula-topo" aria-hidden="true"></div>
       <button class="btn quadrado" id="btn-menu" title="Voltar ao menu">☰</button>
       <div class="placa placa-topo" id="turno">Turno 1</div>
       <div class="placa placa-topo contorno" id="vez">Vez de Jogador 1</div>
@@ -81,7 +82,7 @@
 
     <footer class="mao-area">
       <div id="mao" class="mao"></div>
-      <div class="ajuda-arraste"><b>Arraste</b> a carta para a arena para jogar · para baixo para descartar</div>
+      <div class="ajuda-arraste"><span class="verso-carta" aria-hidden="true"></span><span><b>Arraste</b> a carta para a arena para jogar · para baixo para descartar</span></div>
       <button class="btn btn-dica" id="btn-dica" title="Sugere uma jogada"><span class="ic">💡</span>Dica</button>
       <div class="zona-descarte"><span>🗑️</span> Solte para descartar</div>
     </footer>

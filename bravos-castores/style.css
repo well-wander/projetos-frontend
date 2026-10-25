@@ -207,7 +207,7 @@ button { font-family: inherit; font-weight: 800; cursor: pointer; }
 .stat.gerador .rot { color: var(--cor-grupo); }
 .stat.gerador .rot small { display: block; font-size: .74em; font-weight: 700; color: #4a3a2a; opacity: .85; }
 .stat.gerador .val { color: var(--cor-grupo); font-size: 1.35em; }
-.stat.gerador .val::before { content: '×'; font-size: .75em; margin-right: .08em; }
+.stat.gerador .val::before { content: '+'; font-size: .8em; margin-right: .04em; }
 .stat.recurso {
   background: rgba(255, 255, 255, .78); border: 2px solid rgba(43, 26, 16, .35);
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .08);
@@ -663,6 +663,191 @@ body.arrastando .mao .carta { --empurra: 0px !important; }
   #tela-menu .menu-botoes { flex-direction: column; align-items: center; }
   #tela-menu .menu-botoes .btn.grande { min-width: 78vw; }
   .capa { background-position: 30% 40%; }
+}
+
+/* ===================== Tema v2: madeira grossa com cantoneiras de aço ===================== */
+:root {
+  --aco-h: linear-gradient(#f2f5f7, #a8b1ba 45%, #6b747e);
+  --aco-v: linear-gradient(90deg, #f2f5f7, #a8b1ba 45%, #6b747e);
+  /* cantoneiras em L com rebite em cada canto (tamanho pequeno, para botões e placas) */
+  --cantos-p:
+    var(--rebite) 3px 3px / 11px 11px no-repeat border-box,
+    var(--rebite) calc(100% - 3px) 3px / 11px 11px no-repeat border-box,
+    var(--rebite) 3px calc(100% - 3px) / 11px 11px no-repeat border-box,
+    var(--rebite) calc(100% - 3px) calc(100% - 3px) / 11px 11px no-repeat border-box,
+    var(--aco-h) 0 0 / 20px 7px no-repeat border-box, var(--aco-v) 0 0 / 7px 20px no-repeat border-box,
+    var(--aco-h) 100% 0 / 20px 7px no-repeat border-box, var(--aco-v) 100% 0 / 7px 20px no-repeat border-box,
+    var(--aco-h) 0 100% / 20px 7px no-repeat border-box, var(--aco-v) 0 100% / 7px 20px no-repeat border-box,
+    var(--aco-h) 100% 100% / 20px 7px no-repeat border-box, var(--aco-v) 100% 100% / 7px 20px no-repeat border-box;
+  /* cantoneiras grandes (painéis e arena) */
+  --cantos-g:
+    var(--rebite) 6px 6px / 12px 12px no-repeat border-box,
+    var(--rebite) 26px 6px / 12px 12px no-repeat border-box,
+    var(--rebite) 6px 26px / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 6px) 6px / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 26px) 6px / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 6px) 26px / 12px 12px no-repeat border-box,
+    var(--rebite) 6px calc(100% - 6px) / 12px 12px no-repeat border-box,
+    var(--rebite) 26px calc(100% - 6px) / 12px 12px no-repeat border-box,
+    var(--rebite) 6px calc(100% - 26px) / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 6px) calc(100% - 6px) / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 26px) calc(100% - 6px) / 12px 12px no-repeat border-box,
+    var(--rebite) calc(100% - 6px) calc(100% - 26px) / 12px 12px no-repeat border-box,
+    var(--aco-h) 0 0 / 40px 14px no-repeat border-box, var(--aco-v) 0 0 / 14px 40px no-repeat border-box,
+    var(--aco-h) 100% 0 / 40px 14px no-repeat border-box, var(--aco-v) 100% 0 / 14px 40px no-repeat border-box,
+    var(--aco-h) 0 100% / 40px 14px no-repeat border-box, var(--aco-v) 0 100% / 14px 40px no-repeat border-box,
+    var(--aco-h) 100% 100% / 40px 14px no-repeat border-box, var(--aco-v) 100% 100% / 14px 40px no-repeat border-box;
+  --tabua: linear-gradient(rgba(150, 96, 52, .62), rgba(110, 68, 34, .72)), var(--tex-madeira) center / 360px auto, #8a5a2c;
+  --tabua-clara: linear-gradient(rgba(214, 160, 100, .84), rgba(180, 122, 68, .88)), var(--tex-madeira) center / 360px auto, #a9743f;
+}
+
+/* fundo: tábuas escuras */
+#tela-jogo {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, .55) 100%),
+    linear-gradient(rgba(40, 22, 10, .45), rgba(40, 22, 10, .45)),
+    var(--tex-escura) center / 480px auto, #3d2614;
+}
+
+/* placas e botões: madeira clara com cantoneiras de aço */
+.placa, .btn:not(.btn-dica) {
+  background: var(--cantos-p), var(--tabua-clara);
+}
+.btn.quadrado { background: var(--cantos-p), var(--tabua-clara); }
+.placa::before, .placa::after { display: none; }
+
+/* viga de madeira atravessando o topo */
+#tela-jogo .topo {
+  position: relative; z-index: 5;
+  margin: calc(-1 * clamp(8px, 1.1vh, 16px)) calc(-1 * var(--pad-x)) 0;
+  padding: clamp(6px, .9vh, 12px) var(--pad-x);
+  background: linear-gradient(rgba(70, 40, 18, .5), rgba(40, 22, 10, .72)), var(--tex-madeira) center / 420px auto, #6e4628;
+  border-bottom: 4px solid #1b120b;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .12), 0 6px 14px rgba(0, 0, 0, .55);
+}
+.flamula-topo {
+  position: absolute; left: 50%; top: 0; width: clamp(48px, 4vw, 72px); height: calc(var(--h-topo) * 1.35);
+  transform: translateX(-50%); z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, #8e1f18, #c8392c 40%, #a52a22);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  filter: drop-shadow(0 4px 0 #1b120b);
+  box-shadow: inset 0 6px 0 #5a120d;
+}
+.flamula-topo::after {
+  content: ''; position: absolute; left: 22%; right: 22%; top: 18%; bottom: 30%;
+  border: 3px solid #ffd43b; border-top: none; border-bottom: none; opacity: .8;
+}
+
+/* placa de "Vez de" na cor de quem joga, com coroa */
+#vez { display: flex; align-items: center; gap: .35em; color: #fff; }
+#vez[data-jogador="0"] { background: var(--cantos-p), linear-gradient(#5fb84a, #2f7a2a); }
+#vez[data-jogador="1"] { background: var(--cantos-p), linear-gradient(#e2554a, #8e1f18); }
+.coroa-svg { width: 1.15em; height: .9em; flex: none; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .4)); }
+
+/* painéis: pergaminho dentro de moldura grossa de madeira com cantoneiras */
+.painel {
+  position: relative;
+  border: 14px solid transparent; border-radius: 12px;
+  background:
+    linear-gradient(rgba(255, 250, 235, .25), rgba(150, 110, 50, .12)) padding-box,
+    var(--tex-pergaminho) center / 420px auto padding-box,
+    var(--cantos-g),
+    var(--tabua) border-box;
+  box-shadow: 0 0 0 2px #1b120b, inset 0 0 0 2px #1b120b, inset 0 0 22px rgba(120, 80, 30, .4), 0 10px 22px rgba(0, 0, 0, .55);
+}
+.painel.ativo { box-shadow: 0 0 0 2px #1b120b, 0 0 0 6px var(--amarelo), 0 0 26px 8px rgba(255, 212, 59, .55), inset 0 0 0 2px #1b120b, inset 0 0 22px rgba(120, 80, 30, .4); }
+.flamula {
+  position: absolute; top: -2px; right: 6px; width: 2.1em; height: 3.5em; z-index: 2; pointer-events: none;
+  display: flex; justify-content: center; padding-top: .7em;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35));
+}
+#painel-0 .flamula { background: linear-gradient(90deg, #2a6a28, #4caf50 45%, #2f7a2a); }
+#painel-1 .flamula { background: linear-gradient(90deg, #8e1f18, #d9473a 45%, #a52a22); }
+.flamula .coroa-svg { width: 1.25em; height: 1em; }
+.painel-cabeca { padding-right: 1.9em; }
+.painel-cabeca .nome { font-size: 1.25em; }
+.painel-cabeca .avatar { border-width: 4px; box-shadow: 0 0 0 3px #e9c06c, 0 0 0 5px #1b120b, 0 4px 6px rgba(0, 0, 0, .3); }
+
+/* castelo e muralha: tábua clara com valor em pílula escura */
+.stat.destaque { background: var(--tabua-clara); border: 2px solid #1b120b; border-radius: 10px; }
+
+/* grupos: faixa colorida (gerador) em cima, cartão claro (recurso) embaixo */
+.grupo, .grupo-batalha, .grupo-magia, .grupo-construcao {
+  background: none; border: none; padding: 0; gap: 0; box-shadow: none; animation: none;
+}
+.stat.gerador {
+  border: 2px solid #1b120b; border-bottom: none; border-radius: 10px 10px 0 0;
+  padding: .25em .55em .25em .35em; font-size: .92em;
+  background: linear-gradient(var(--faixa-claro), var(--faixa-escuro));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .3), inset 0 -3px 0 rgba(0, 0, 0, .2);
+}
+.grupo-construcao { --faixa-claro: #5fb84a; --faixa-escuro: #2f7a2a; }
+.grupo-batalha { --faixa-claro: #e2554a; --faixa-escuro: #8e1f18; }
+.grupo-magia { --faixa-claro: #4c9fe0; --faixa-escuro: #1d4e89; }
+.stat.gerador .rot, .stat.gerador .val {
+  color: #fff;
+  text-shadow: 0 2px 0 #1b120b, 1.5px 1.5px 0 #1b120b, -1.5px 1.5px 0 #1b120b, 1.5px -1.5px 0 #1b120b, -1.5px -1.5px 0 #1b120b;
+}
+.stat.gerador .rot { font-family: var(--fonte-titulo); letter-spacing: .5px; font-weight: 400; }
+.stat.gerador .rot small { color: #fff; opacity: .95; font-family: var(--fonte-texto); font-weight: 700; letter-spacing: 0; text-shadow: 0 1px 0 #1b120b, 1px 1px 0 #1b120b, -1px -1px 0 #1b120b; }
+.stat.recurso {
+  border: 2px solid #1b120b; border-top: 2px solid rgba(0, 0, 0, .3); border-radius: 0 0 10px 10px;
+  background: linear-gradient(#fffaf0, #efe2c3);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .08);
+}
+.stat.recurso .val {
+  background: #3a2416; color: #fff; border-radius: 999px; padding: .12em .5em .04em; min-width: 2.1em; text-align: center; font-size: 1.35em;
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, .4);
+}
+.grupo-magia .stat.gerador { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .3), 0 0 12px rgba(80, 170, 255, .55); }
+
+/* arena: moldura grossa de madeira com cantoneiras */
+.cenario {
+  border: 16px solid transparent; border-radius: 14px;
+  background:
+    linear-gradient(#6fb6ea, #cfe9f7 55%, #74b345 55%) padding-box,
+    var(--cantos-g),
+    var(--tabua) border-box;
+  box-shadow: 0 0 0 2px #1b120b, inset 0 0 0 3px #1b120b, 0 12px 26px rgba(0, 0, 0, .6);
+}
+
+/* mensagem da jogada: pergaminho com moldura de madeira e rebites */
+.log {
+  border: 6px solid transparent; border-radius: 10px;
+  background:
+    linear-gradient(rgba(255, 250, 235, .82), rgba(255, 250, 235, .82)) padding-box,
+    var(--tex-pergaminho) center / 360px auto padding-box,
+    var(--rebite) 0 0 / 10px 10px no-repeat border-box,
+    var(--rebite) 100% 0 / 10px 10px no-repeat border-box,
+    var(--rebite) 0 100% / 10px 10px no-repeat border-box,
+    var(--rebite) 100% 100% / 10px 10px no-repeat border-box,
+    var(--tabua) border-box;
+  box-shadow: 0 0 0 2px #1b120b, inset 0 0 0 2px #1b120b, 0 6px 12px rgba(0, 0, 0, .4);
+}
+
+/* botão de dica grande com cantoneiras */
+.btn-dica {
+  background: var(--cantos-p), linear-gradient(#ffe680, #f2c230);
+  height: clamp(46px, 6.4vh, 70px); padding: 0 1.2em; font-size: clamp(18px, 1.6vw, 30px);
+}
+
+/* dica de arrastar com o verso de uma carta */
+.ajuda-arraste { display: flex; align-items: center; gap: 10px; max-width: 22vw; font-size: clamp(12px, .95vw, 16px); }
+.verso-carta {
+  flex: none; width: 34px; height: 46px; border-radius: 5px; transform: rotate(-10deg);
+  background:
+    radial-gradient(circle at 50% 50%, #e9c06c 0 5px, #1b120b 5px 6px, transparent 7px),
+    repeating-linear-gradient(45deg, #5c3d2e 0 4px, #4a2f22 4px 8px);
+  border: 2px solid #e9c06c; box-shadow: 0 0 0 2px #1b120b, 0 4px 6px rgba(0, 0, 0, .5);
+}
+
+@media (max-width: 900px) {
+  .painel { border-width: 8px; }
+  .cenario { border-width: 10px; }
+  .flamula { width: 2em; height: 3.2em; padding-top: .6em; }
+  .flamula-topo { display: none; }
+  #tela-jogo .topo { margin: -8px calc(-1 * var(--pad-x)) 0; }
 }
 
 /* ===================== Responsivo ===================== */

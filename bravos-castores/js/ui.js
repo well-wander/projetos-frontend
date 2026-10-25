@@ -13,6 +13,7 @@ function imgOuNada(src) {
 }
 
 const NOME_RARIDADE = { 1: 'comum', 2: 'rara', 3: 'épica' };
+const COROA = '<svg class="coroa-svg" viewBox="0 0 24 18" aria-hidden="true"><path d="M2 15 L1 4 L7 9 L12 2 L17 9 L23 4 L22 15 Z" fill="#ffd43b" stroke="#1b120b" stroke-width="2" stroke-linejoin="round"/><rect x="2" y="14" width="20" height="3.5" rx="1" fill="#e3a200" stroke="#1b120b" stroke-width="1.6"/></svg>';
 
 // =====================================================================
 //  CARTAS
@@ -114,6 +115,7 @@ export function montarPainel(i, jogador, ehBot) {
   const painel = $(`#painel-${i}`);
   const cor = i === 0 ? 'verde' : 'vermelho';
   let html = `
+    <div class="flamula" aria-hidden="true">${COROA}</div>
     <div class="painel-cabeca">
       <div class="avatar">${imgOuNada(`img/castor-${cor}.png`)}🦫</div>
       <div class="nome">${jogador.nome}<small>${ehBot ? 'bot' : 'humano'}</small></div>
@@ -218,7 +220,9 @@ export function atualizarCabecalho(estado) {
     $(`#painel-${i}`).classList.toggle('ativo', estado.vez === i && estado.vencedor === null);
   });
   $('#turno').textContent = `Turno ${estado.turno}`;
-  $('#vez').textContent = estado.vencedor === null ? `Vez de ${estado.jogadores[estado.vez].nome}` : 'Fim de jogo';
+  const vez = $('#vez');
+  vez.innerHTML = `${COROA}<span>${estado.vencedor === null ? `Vez de ${estado.jogadores[estado.vez].nome}` : 'Fim de jogo'}</span>`;
+  vez.dataset.jogador = estado.vencedor === null ? estado.vez : '';
 }
 
 // Faixa grande "Vez de Fulano" atravessando a arena.
