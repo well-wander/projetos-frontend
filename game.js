@@ -238,6 +238,19 @@
   const resImgCache = {};
   const resImg = (k) => resImgCache[k] || (resImgCache[k] = PX.canvasURL(resSprite(k), 2));
   const PRICE = { maca: 3, galho: 4, pedra: 5, semente: 30 };
+  const SKILLS = [
+    { id: 'mochila1', branch: 'mochila', name: 'Mochila maior', desc: '+5 espaços na mochila', cost: 35, icon: '🎒' },
+    { id: 'mochila2', branch: 'mochila', name: 'Ímã de bolso', desc: 'puxa os recursos que estão perto', cost: 150, req: 'mochila1', icon: '🧲' },
+    { id: 'folego1', branch: 'folego', name: 'Dia longo', desc: 'o dia dura 30 s a mais', cost: 45, icon: '☀️' },
+    { id: 'folego2', branch: 'folego', name: 'Passo calmo', desc: 'a cobra anda 15% mais devagar', cost: 150, req: 'folego1', icon: '🐢' },
+    { id: 'sorte1', branch: 'sorte', name: 'Bom negócio', desc: '+20% no valor de venda', cost: 55, icon: '💰' },
+    { id: 'sorte2', branch: 'sorte', name: 'Faro dourado', desc: 'sementes 60% mais comuns', cost: 160, req: 'sorte1', icon: '✨' },
+  ];
+  const BRANCHES = [
+    { id: 'mochila', name: 'Mochila', color: '#6dff8a' },
+    { id: 'folego', name: 'Fôlego', color: '#4af0ff' },
+    { id: 'sorte', name: 'Sorte', color: '#ffd84a' },
+  ];
   const BUILD_USE = { galho: 'constrói', pedra: 'constrói', semente: 'constrói a Torre' };
   const EXP = { day: 75000, cap: 10, tick: 150, items: 3, respawn: 3500, minDist: 6 };
   const LOCS = {
@@ -395,7 +408,7 @@
       musicOff: false,
       seenStory: false,
       dpad: 'auto', // auto | on | off
-      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, moedas: 0, runs: 0, tips: {} },
+      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, moedas: 0, skills: [], runs: 0, tips: {} },
     };
   }
 
@@ -422,6 +435,7 @@
     for (const k of ['maca', 'galho', 'pedra', 'semente']) d.exped.inv[k] = num(pick(ex.inv, k), 0, 1e6);
     d.exped.runs = num(ex.runs, 0, 1e6);
     d.exped.moedas = num(ex.moedas, 0, 1e9);
+    if (Array.isArray(ex.skills)) d.exped.skills = ex.skills.filter((id, i, a) => SKILLS.some((sk) => sk.id === id) && a.indexOf(id) === i);
     if (ex.tips && typeof ex.tips === 'object') d.exped.tips = Object.assign({}, ex.tips);
     if (SKINS[d.skin].cost > d.total) d.skin = 'arco';
     return d;
@@ -472,7 +486,7 @@
     skins: $('skins'), diffs: $('diffs'), phases: $('phases'), play: $('play'),
     sfxToggle: $('sfxToggle'), musicToggle: $('musicToggle'),
     dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'), hint: document.querySelector('.hint'),
-    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expCoins: $('expCoins'), market: $('market'), expLocs: $('expLocs'),
+    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expCoins: $('expCoins'), market: $('market'), skillTree: $('skillTree'), expLocs: $('expLocs'),
     result: $('result'), resultKicker: $('resultKicker'), resultTitle: $('resultTitle'), resultReason: $('resultReason'),
     resultLoot: $('resultLoot'), resultLost: $('resultLost'), phaseLabel: $('phaseLabel'), scoreLabel: $('scoreLabel'), pauseNote: $('pauseNote'),
   };
@@ -737,7 +751,7 @@
     queue = [];
     grow = 0;
     applesEaten = 0;
-    tick = P.expedition ? EXP.tick : D.tick - idx * D.dec;
+    tick = P.expedition ? expTick() : D.tick - idx * D.dec;
     acc = 0;
     phaseTime = 0;
     combo = 1;
@@ -1430,7 +1444,7 @@
 
   // Ímã: a maçã anda pelo caminho livre até a casa logo à frente da cabeça.
   // A cada passo ela fica sempre mais perto (nunca se afasta).
-  function magnetPull(item) {
+  function magnetPull(item, reach = 9) {
     if (!item) return;
     const head = snake[0];
     const d0 = queue.length ? queue[0] : dir;
@@ -1445,7 +1459,7 @@
     for (let qi = 0; qi < q.length; qi++) {
       const c = q[qi];
       const cd = distMap[c];
-      if (cd >= 9) continue;
+      if (cd >= reach) continue;
       const cx = c % N;
       const cy = (c - cx) / N;
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -1643,8 +1657,12 @@
   // =====================================================================
   //  MODO EXPEDIÇÕES
   // =====================================================================
-  function capNow() { return EXP.cap; }
-  const nightSecs = () => Math.max(0, (phaseTime - EXP.day) / 1000);
+  const hasSkill = (id) => save.exped.skills.indexOf(id) >= 0;
+  function capNow() { return EXP.cap + (hasSkill('mochila1') ? 5 : 0); }
+  const dayLen = () => EXP.day + (hasSkill('folego1') ? 30000 : 0);
+  const expTick = () => EXP.tick * (hasSkill('folego2') ? 1.15 : 1);
+  const priceOf = (k) => Math.round(PRICE[k] * (hasSkill('sorte1') ? 1.2 : 1));
+  const nightSecs = () => Math.max(0, (phaseTime - dayLen()) / 1000);
 
   function locDef(key) {
     const L = LOCS[key];
@@ -1662,7 +1680,10 @@
       if (items.some((it) => Math.abs(it.x - p.x) + Math.abs(it.y - p.y) < 4)) continue;
       let r = Math.random();
       let kind = 'maca';
-      for (const k in loc.mix) { r -= loc.mix[k]; if (r <= 0) { kind = k; break; } }
+      const mix = Object.assign({}, loc.mix);
+      if (mix.semente && hasSkill('sorte2')) mix.semente *= 1.6;
+      r *= Object.keys(mix).reduce((t, k) => t + mix[k], 0);
+      for (const k in mix) { r -= mix[k]; if (r <= 0) { kind = k; break; } }
       items.push({ x: p.x, y: p.y, born: now, t0: phaseTime, kind });
       return;
     }
@@ -1782,8 +1803,9 @@
   }
 
   let expHudTick = 0;
+  let pocketMagnet = 0;
   function updateExpedition(dt) {
-    const dayLeft = EXP.day - phaseTime;
+    const dayLeft = dayLen() - phaseTime;
     if (!nightOn && !duskWarned && dayLeft < 10000) {
       duskWarned = true;
       showTip('A noite está chegando! Volte para a toca.');
@@ -1797,6 +1819,10 @@
       sfx.caw();
       tipOnce('noite', 'À noite o Corvo ataca: fuja das faixas vermelhas!');
     }
+    if (hasSkill('mochila2') && !buffs.magnet && carry.length < capNow()) {
+      pocketMagnet -= dt;
+      if (pocketMagnet <= 0) { pocketMagnet = 260; items.forEach((it) => magnetPull(it, 3)); }
+    }
     if (items.length < EXP.items) {
       itemTimer -= dt;
       if (itemTimer <= 0) { itemTimer = EXP.respawn; spawnResource(); }
@@ -1808,10 +1834,10 @@
   function updateExpHud(animate) {
     ui.phaseLabel.textContent = 'Local';
     ui.phase.textContent = loc.short;
-    const left = Math.max(0, EXP.day - phaseTime);
+    const left = Math.max(0, dayLen() - phaseTime);
     ui.goalLabel.textContent = nightOn ? 'Noite' : 'Dia';
     ui.goalText.textContent = nightOn ? 'Corvo!' : `${Math.ceil(left / 1000)}s`;
-    ui.goalFill.style.width = nightOn ? '100%' : `${(left / EXP.day) * 100}%`;
+    ui.goalFill.style.width = nightOn ? '100%' : `${(left / dayLen()) * 100}%`;
     ui.goalFill.classList.toggle('boss', nightOn);
     ui.goalFill.classList.toggle('day', !nightOn);
     ui.scoreLabel.textContent = 'Mochila';
@@ -1834,7 +1860,7 @@
     ui.introKicker.textContent = 'Expedição · perigo ' + loc.danger;
     ui.introName.textContent = loc.name;
     ui.introGoal.textContent = `Mochila: ${capNow()} espaços`;
-    ui.introSize.textContent = `Dia: ${EXP.day / 1000} s`;
+    ui.introSize.textContent = `Dia: ${dayLen() / 1000} s`;
     ui.introNews.textContent = 'Colete recursos e volte para a toca onde você começou. Se cair, perde metade da mochila.';
     ui.introPowers.innerHTML = RES_KEYS.filter((k) => loc.mix[k]).map((k) =>
       `<span class="pw-chip"><img src="${resImg(k)}" alt="">${RES[k].plural} ${Math.round(loc.mix[k] * 100)}%</span>`).join('');
@@ -1857,6 +1883,7 @@
     ui.expRuns.textContent = runs ? `${runs} ${runs === 1 ? 'expedição' : 'expedições'}` : 'nenhuma expedição ainda';
     ui.expCoins.textContent = fmt(save.exped.moedas);
     renderMarket();
+    renderSkills();
     ui.expLocs.innerHTML = '';
     Object.keys(LOCS).forEach((key) => {
       const L = LOCS[key];
@@ -1879,10 +1906,10 @@
     const focusedId = ae && ae.dataset ? ae.dataset.id : null;
     ui.market.innerHTML = RES_KEYS.map((k) => {
       const q = inv[k];
-      const all = q * PRICE[k];
+      const all = q * priceOf(k);
       return `<div class="m-row${q ? '' : ' empty'}" data-k="${k}">
         <img src="${resImg(k)}" alt="">
-        <span class="m-name">${RES[k].plural}${BUILD_USE[k] ? ` <i class="m-tag">${BUILD_USE[k]}</i>` : ''}<small>${PRICE[k]} ${PRICE[k] === 1 ? 'moeda' : 'moedas'} cada</small></span>
+        <span class="m-name">${RES[k].plural}${BUILD_USE[k] ? ` <i class="m-tag">${BUILD_USE[k]}</i>` : ''}<small>${priceOf(k)} ${priceOf(k) === 1 ? 'moeda' : 'moedas'} cada${hasSkill('sorte1') ? ' (+20%)' : ''}</small></span>
         <b class="m-qty">${q}</b>
         <button type="button" class="m-btn" data-id="sell1-${k}" data-k="${k}" data-n="1" data-silent="1"${q ? '' : ' disabled'}>Vender 1</button>
         <button type="button" class="m-btn all" data-id="sellall-${k}" data-k="${k}" data-n="all" data-silent="1"${q ? '' : ' disabled'}>Tudo <small>+${fmt(all)}</small></button>
@@ -1896,7 +1923,7 @@
     const inv = save.exped.inv;
     const qty = n === 'all' ? inv[k] : Math.min(1, inv[k]);
     if (!qty) { sfx.deny(); return; }
-    const gain = qty * PRICE[k];
+    const gain = qty * priceOf(k);
     inv[k] -= qty;
     save.exped.moedas += gain;
     persist();
@@ -1917,6 +1944,52 @@
       document.body.append(pop);
       setTimeout(() => pop.remove(), 900);
     }
+  }
+
+  function renderSkills() {
+    const ae = document.activeElement;
+    const focusedId = ae && ae.dataset ? ae.dataset.id : null;
+    const coins = save.exped.moedas;
+    ui.skillTree.innerHTML = BRANCHES.map((br) => {
+      const nodes = SKILLS.filter((sk) => sk.branch === br.id).map((sk, lvl) => {
+        const owned = hasSkill(sk.id);
+        const locked = !owned && sk.req && !hasSkill(sk.req);
+        const poor = !owned && !locked && coins < sk.cost;
+        const cls = owned ? 'owned' : locked ? 'locked' : poor ? 'poor' : 'ready';
+        const status = owned ? 'Comprada ✓' : locked ? '🔒 Compre o nível 1' : `${fmt(sk.cost)} moedas`;
+        return `<button type="button" class="sk ${cls}" data-id="skill-${sk.id}" data-sk="${sk.id}" data-silent="1"${owned || locked ? ' disabled' : ''}>
+          <span class="sk-lvl">Nível ${lvl + 1}</span>
+          <span class="sk-icon">${sk.icon}</span>
+          <span class="sk-name">${sk.name}</span>
+          <span class="sk-desc">${sk.desc}</span>
+          <span class="sk-cost">${status}</span>
+        </button>`;
+      }).join('<i class="sk-link"></i>');
+      return `<div class="branch" style="--c:${br.color}"><h3>${br.name}</h3>${nodes}</div>`;
+    }).join('');
+    const refocus = focusedId && ui.skillTree.querySelector(`[data-id="${focusedId}"]`);
+    if (refocus && !refocus.disabled) refocus.focus();
+  }
+
+  function buySkill(id) {
+    const sk = SKILLS.filter((x) => x.id === id)[0];
+    if (!sk || hasSkill(id) || (sk.req && !hasSkill(sk.req))) return;
+    const btn = ui.skillTree.querySelector(`[data-sk="${id}"]`);
+    if (save.exped.moedas < sk.cost) {
+      sfx.deny();
+      if (btn && btn.animate) btn.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }], { duration: 240, easing: 'steps(4, end)' });
+      showTip(`Faltam ${fmt(sk.cost - save.exped.moedas)} moedas para ${sk.name}.`);
+      return;
+    }
+    save.exped.moedas -= sk.cost;
+    save.exped.skills.push(id);
+    persist();
+    sfx.unlocked();
+    vibrate([20, 30, 40]);
+    renderExped();
+    bump(ui.expCoins);
+    const nb = ui.skillTree.querySelector(`[data-sk="${id}"]`);
+    if (nb && nb.animate) nb.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'steps(5, end)' });
   }
 
   function nearestItem() {
@@ -1952,7 +2025,7 @@
   const nightCv = document.createElement('canvas');
   function drawNight() {
     if (!P.expedition) return;
-    const dayLeft = EXP.day - phaseTime;
+    const dayLeft = dayLen() - phaseTime;
     let a = 0;
     if (nightOn) a = Math.min(0.72, 0.45 + nightSecs() * 0.006);
     else if (dayLeft < 10000) a = (1 - dayLeft / 10000) * 0.4;
@@ -2164,6 +2237,10 @@
   $('retry').addEventListener('click', retryPhase);
   $('next').addEventListener('click', nextPhase);
   $('openExped').addEventListener('click', showExped);
+  ui.skillTree.addEventListener('click', (e) => {
+    const b = e.target.closest ? e.target.closest('.sk') : null;
+    if (b && !b.disabled) buySkill(b.dataset.sk);
+  });
   ui.market.addEventListener('click', (e) => {
     const b = e.target.closest ? e.target.closest('.m-btn') : null;
     if (b && !b.disabled) sell(b.dataset.k, b.dataset.n);
@@ -2299,6 +2376,7 @@
             magnetTimer = 120;
             magnetPull(apple);
             magnetPull(golden);
+            if (P.expedition && carry.length < capNow()) items.forEach((it) => magnetPull(it));
           }
         } else if (P.runner) runnerHop();
         renderBuffs();

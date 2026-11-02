@@ -820,3 +820,55 @@ body.with-dpad .app { gap: 14px; padding-top: max(16px, env(safe-area-inset-top)
   .soon { grid-template-columns: 1fr; }
 }
 .m-tag { align-self: flex-start; margin: 2px 0; }
+
+/* ---------- Árvore de habilidades ---------- */
+.skill-tree { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.branch { display: flex; flex-direction: column; align-items: stretch; }
+.branch h3 {
+  font-family: 'Bangers', sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-align: center;
+  color: var(--c);
+  text-shadow: 2px 2px 0 #1a0b2e;
+  margin-bottom: 8px;
+}
+.sk-link { display: block; width: 6px; height: 16px; margin: 4px auto; background: var(--c); opacity: .5; box-shadow: 0 0 0 2px var(--line); }
+.sk {
+  position: relative;
+  border: none;
+  cursor: pointer;
+  padding: 10px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  background: var(--panel);
+  box-shadow: var(--px-border), inset 0 -4px 0 0 rgba(0, 0, 0, .35);
+}
+.sk:hover:not(:disabled) { filter: brightness(1.12); }
+.sk:active:not(:disabled) { transform: translateY(3px); }
+.sk-lvl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.sk-icon { font-size: 28px; line-height: 1.1; }
+.sk-name { font-family: 'Bangers', sans-serif; font-size: 19px; letter-spacing: 1px; line-height: 1.05; }
+.sk-desc { font-size: 12px; color: var(--muted); line-height: 1.2; min-height: 2.4em; }
+.sk-cost { margin-top: 4px; font-size: 13px; padding: 2px 8px; background: rgba(0, 0, 0, .4); }
+
+.sk.ready { box-shadow: 0 -4px 0 0 var(--c), 0 4px 0 0 var(--c), -4px 0 0 0 var(--c), 4px 0 0 0 var(--c); animation: sk-glow 1.2s steps(1) infinite; }
+.sk.ready .sk-cost { background: var(--c); color: #1a0b2e; }
+@keyframes sk-glow { 50% { box-shadow: var(--px-border); } }
+.sk.poor .sk-cost { color: #ff8a9e; }
+.sk.owned { background: color-mix(in srgb, var(--c) 28%, var(--panel)); cursor: default; }
+.sk.owned .sk-cost { background: var(--c); color: #1a0b2e; }
+.sk.locked { opacity: .45; cursor: not-allowed; }
+.sk:disabled { color: inherit; }
+
+@media (max-width: 560px) {
+  .skill-tree { grid-template-columns: 1fr; }
+  .branch { display: grid; grid-template-columns: 1fr 14px 1fr; align-items: stretch; }
+  .branch h3 { grid-column: 1 / -1; text-align: left; margin-bottom: 4px; }
+  .sk-link { width: 14px; height: 6px; margin: auto 0; }
+}
+@media (prefers-reduced-motion: reduce) { .sk.ready { animation: none; } }
