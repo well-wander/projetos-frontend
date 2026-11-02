@@ -1,6 +1,6 @@
 // Guarda o jogo no aparelho para funcionar sem internet.
 // Com internet, sempre busca a versão mais nova (e atualiza a cópia guardada).
-const CACHE = 'cobrinha-v7';
+const CACHE = 'cobrinha-v8';
 const ASSETS = [
   './',
   './index.html',

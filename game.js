@@ -246,6 +246,12 @@
     { id: 'sorte1', branch: 'sorte', name: 'Bom negócio', desc: '+20% no valor de venda', cost: 55, icon: '💰' },
     { id: 'sorte2', branch: 'sorte', name: 'Faro dourado', desc: 'sementes 60% mais comuns', cost: 160, req: 'sorte1', icon: '✨' },
   ];
+  const BUILDS = [
+    { id: 'poco', name: 'Poço', icon: '🪣', cost: { pedra: 8, galho: 6 }, desc: 'Se a cobra cair, o Poço te salva sem perder nada. Depois leva 2 expedições para encher de novo.' },
+    { id: 'ninho', name: 'Ninho', icon: '🪺', cost: { galho: 12, maca: 10 }, desc: 'Toda expedição começa com 1 power-up de presente.' },
+    { id: 'torre', name: 'Torre de vigia', icon: '🗼', cost: { pedra: 12, galho: 10, semente: 2 }, req: ['poco', 'ninho'], desc: 'Libera o Cânion Laranja e marca as sementes no mapa, até no escuro.' },
+  ];
+  const WELL_REFILL = 2;
   const BRANCHES = [
     { id: 'mochila', name: 'Mochila', color: '#6dff8a' },
     { id: 'folego', name: 'Fôlego', color: '#4af0ff' },
@@ -316,6 +322,26 @@
         '................',
       ],
     },
+  };
+  LOCS.canion = {
+    name: 'Cânion Laranja', short: 'Cânion', theme: 3, music: 'p4', danger: 'alto', dangerLevel: 3, rottenDay: 1, needs: 'torre',
+    mix: { pedra: 0.5, galho: 0.3, semente: 0.2 }, powers: ['slow', 'magnet', 'ghost'],
+    inner: [
+      '..............',
+      '.#...#..#...#.',
+      '.#..........#.',
+      '.....##.##....',
+      '...#......#...',
+      '.#....##....#.',
+      '.#....##....#.',
+      '...#......#...',
+      '....##.##.....',
+      '.#..........#.',
+      '.#...#..#...#.',
+      '..............',
+      '.###......###.',
+      '..............',
+    ],
   };
   // a toca (ponto de partida e de volta) fica embaixo, no meio, na margem livre
   Object.keys(LOCS).forEach((k) => {
@@ -408,7 +434,7 @@
       musicOff: false,
       seenStory: false,
       dpad: 'auto', // auto | on | off
-      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, moedas: 0, skills: [], runs: 0, tips: {} },
+      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, moedas: 0, skills: [], builds: [], wellWait: 0, runs: 0, tips: {} },
     };
   }
 
@@ -435,6 +461,8 @@
     for (const k of ['maca', 'galho', 'pedra', 'semente']) d.exped.inv[k] = num(pick(ex.inv, k), 0, 1e6);
     d.exped.runs = num(ex.runs, 0, 1e6);
     d.exped.moedas = num(ex.moedas, 0, 1e9);
+    if (Array.isArray(ex.builds)) d.exped.builds = ex.builds.filter((id, i, a) => BUILDS.some((b) => b.id === id) && a.indexOf(id) === i);
+    d.exped.wellWait = num(ex.wellWait, 0, WELL_REFILL);
     if (Array.isArray(ex.skills)) d.exped.skills = ex.skills.filter((id, i, a) => SKILLS.some((sk) => sk.id === id) && a.indexOf(id) === i);
     if (ex.tips && typeof ex.tips === 'object') d.exped.tips = Object.assign({}, ex.tips);
     if (SKINS[d.skin].cost > d.total) d.skin = 'arco';
@@ -486,7 +514,7 @@
     skins: $('skins'), diffs: $('diffs'), phases: $('phases'), play: $('play'),
     sfxToggle: $('sfxToggle'), musicToggle: $('musicToggle'),
     dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'), hint: document.querySelector('.hint'),
-    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expCoins: $('expCoins'), market: $('market'), skillTree: $('skillTree'), expLocs: $('expLocs'),
+    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expCoins: $('expCoins'), market: $('market'), skillTree: $('skillTree'), builds: $('builds'), buildProgress: $('buildProgress'), baseScene: $('baseScene'), baseBanner: $('baseBanner'), expLocs: $('expLocs'),
     result: $('result'), resultKicker: $('resultKicker'), resultTitle: $('resultTitle'), resultReason: $('resultReason'),
     resultLoot: $('resultLoot'), resultLost: $('resultLost'), phaseLabel: $('phaseLabel'), scoreLabel: $('scoreLabel'), pauseNote: $('pauseNote'),
   };
@@ -739,6 +767,7 @@
     phaseIdx = idx;
     P = def || PHASES[idx];
     mode = P.expedition ? 'expedition' : 'campaign';
+    document.body.classList.toggle('exp-mode', !!P.expedition);
     theme = THEMES[P.theme];
     D = DIFFS[save.diff];
     SKIN = SKINS[save.skin];
@@ -843,6 +872,7 @@
     sfx.start();
     music.play(levelMusic());
     if (P.expedition) tipOnce('inicio', 'Pegue recursos e volte para a toca onde começou!');
+    if (P.expedition && hasBuild('ninho') && !nestGiven) { nestGiven = true; giveNestPower(); }
   }
 
   function retryPhase() {
@@ -1766,7 +1796,11 @@
   }
 
   function finishExpedition(ok) {
-    const lostN = ok ? 0 : Math.floor(carry.length / 2);
+    // o Poço cheio salva a cobra de uma queda inteira; depois precisa encher de novo
+    const wellSaved = !ok && hasBuild('poco') && save.exped.wellWait === 0;
+    if (save.exped.wellWait > 0) save.exped.wellWait--;
+    if (wellSaved) save.exped.wellWait = WELL_REFILL;
+    const lostN = ok || wellSaved ? 0 : Math.floor(carry.length / 2);
     const kept = carry.slice(0, carry.length - lostN);
     const lost = carry.slice(carry.length - lostN);
     const got = countItems(kept);
@@ -1775,10 +1809,10 @@
     persist();
     state = 'result';
     ui.resultKicker.textContent = loc.name + ' · expedição ' + save.exped.runs;
-    ui.resultTitle.textContent = ok ? (kept.length ? 'Saque guardado!' : 'Voltou de mãos vazias') : 'A cobra caiu...';
+    ui.resultTitle.textContent = ok ? (kept.length ? 'Saque guardado!' : 'Voltou de mãos vazias') : wellSaved ? 'O Poço te salvou!' : 'A cobra caiu...';
     ui.resultReason.textContent = ok ? '' : deathReason;
     ui.resultLoot.innerHTML = kept.length ? lootHTML(got) : '<span class="small">Nada desta vez.</span>';
-    ui.resultLost.textContent = lostN ? `Perdeu ${lostN} ${lostN === 1 ? 'item' : 'itens'} na queda (metade da mochila).` : '';
+    ui.resultLost.textContent = lostN ? `Perdeu ${lostN} ${lostN === 1 ? 'item' : 'itens'} na queda (metade da mochila).` : wellSaved ? `Você não perdeu nada. O Poço enche de novo em ${WELL_REFILL} expedições.` : '';
     showOverlay(ui.result);
   }
 
@@ -1847,10 +1881,13 @@
   }
 
   let lastLoc = 'colina';
+  let nestGiven = false;
   function startExpedition(key) {
     sfx.unlock();
+    if (LOCS[key].needs && !hasBuild(LOCS[key].needs)) return;
     lastLoc = key;
     loc = LOCS[key];
+    nestGiven = false;
     score = 0;
     setupPhase(0, locDef(key));
     state = 'intro';
@@ -1863,7 +1900,10 @@
     ui.introSize.textContent = `Dia: ${dayLen() / 1000} s`;
     ui.introNews.textContent = 'Colete recursos e volte para a toca onde você começou. Se cair, perde metade da mochila.';
     ui.introPowers.innerHTML = RES_KEYS.filter((k) => loc.mix[k]).map((k) =>
-      `<span class="pw-chip"><img src="${resImg(k)}" alt="">${RES[k].plural} ${Math.round(loc.mix[k] * 100)}%</span>`).join('');
+      `<span class="pw-chip"><img src="${resImg(k)}" alt="">${RES[k].plural} ${Math.round(loc.mix[k] * 100)}%</span>`).join('') +
+      (hasBuild('poco') ? `<span class="pw-chip">🪣 ${save.exped.wellWait ? 'Poço enchendo' : 'Poço cheio: 1 segunda chance'}</span>` : '') +
+      (hasBuild('ninho') ? '<span class="pw-chip">🪺 Power-up de presente</span>' : '') +
+      (hasBuild('torre') ? '<span class="pw-chip">🗼 Sementes marcadas</span>' : '');
     showOverlay(ui.intro);
     music.play(loc.music);
   }
@@ -1884,16 +1924,19 @@
     ui.expCoins.textContent = fmt(save.exped.moedas);
     renderMarket();
     renderSkills();
+    renderBuilds();
     ui.expLocs.innerHTML = '';
     Object.keys(LOCS).forEach((key) => {
       const L = LOCS[key];
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'loc';
+      const lockedLoc = L.needs && !hasBuild(L.needs);
+      b.className = 'loc' + (lockedLoc ? ' locked' : '');
+      b.disabled = !!lockedLoc;
       b.style.setProperty('--land', THEMES[L.theme].floor[0]);
       b.innerHTML = `<span class="loc-name">${L.name}</span>
         <span class="loc-res">${RES_KEYS.filter((k) => L.mix[k]).map((k) => `<img src="${resImg(k)}" alt="${RES[k].name}" title="${RES[k].plural}">`).join('')}</span>
-        <span class="loc-danger d-${L.dangerLevel}">Perigo ${L.danger}</span>`;
+        <span class="loc-danger d-${L.dangerLevel}">${lockedLoc ? '🔒 Construa a Torre' : 'Perigo ' + L.danger}</span>`;
       b.addEventListener('click', () => startExpedition(key));
       ui.expLocs.append(b);
     });
@@ -1992,6 +2035,151 @@
     if (nb && nb.animate) nb.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'steps(5, end)' });
   }
 
+  // ---------------------------------------------------------------
+  //  Reconstrução do pomar (obras pagas com materiais)
+  // ---------------------------------------------------------------
+  const hasBuild = (id) => save.exped.builds.indexOf(id) >= 0;
+  const buildReqOk = (b) => !b.req || b.req.every(hasBuild);
+
+  function renderBuilds() {
+    const inv = save.exped.inv;
+    ui.buildProgress.textContent = `${save.exped.builds.length}/${BUILDS.length}`;
+    const ae = document.activeElement;
+    const focusedId = ae && ae.dataset ? ae.dataset.id : null;
+    ui.builds.innerHTML = BUILDS.map((b) => {
+      const built = hasBuild(b.id);
+      const reqOk = buildReqOk(b);
+      const can = !built && reqOk && Object.keys(b.cost).every((k) => inv[k] >= b.cost[k]);
+      const costs = Object.keys(b.cost).map((k) =>
+        `<span class="cost ${inv[k] >= b.cost[k] || built ? 'ok' : 'miss'}"><img src="${resImg(k)}" alt="${RES[k].plural}">${built ? b.cost[k] : `${Math.min(inv[k], b.cost[k])}/${b.cost[k]}`}</span>`).join('');
+      let status = '';
+      if (b.id === 'poco' && built) {
+        const w = save.exped.wellWait;
+        status = w ? `<span class="b-state wait">Enchendo: falta ${w} ${w === 1 ? 'expedição' : 'expedições'}</span>` : '<span class="b-state ready">Cheio: pronto para te salvar</span>';
+      }
+      const action = built
+        ? '<span class="b-done">Construído ✓</span>'
+        : !reqOk
+          ? '<span class="b-lock">🔒 Construa antes o Poço e o Ninho</span>'
+          : `<button type="button" class="btn b-btn" data-id="build-${b.id}" data-build="${b.id}" data-silent="1" style="--c:#6dff8a;--d:#25a548"${can ? '' : ' disabled'}>Construir</button>`;
+      return `<div class="build${built ? ' built' : ''}${!reqOk && !built ? ' locked' : ''}" data-b="${b.id}">
+        <span class="b-icon">${b.icon}</span>
+        <div class="b-text"><b>${b.name}</b><span>${b.desc}</span>${status}</div>
+        <div class="b-costs">${costs}</div>
+        ${action}
+      </div>`;
+    }).join('');
+    const refocus = focusedId && ui.builds.querySelector(`[data-id="${focusedId}"]`);
+    if (refocus && !refocus.disabled) refocus.focus();
+    drawBaseScene();
+  }
+
+  function build(id) {
+    const b = BUILDS.filter((x) => x.id === id)[0];
+    const inv = save.exped.inv;
+    if (!b || hasBuild(id) || !buildReqOk(b)) return;
+    if (!Object.keys(b.cost).every((k) => inv[k] >= b.cost[k])) { sfx.deny(); return; }
+    for (const k in b.cost) inv[k] -= b.cost[k];
+    save.exped.builds.push(id);
+    persist();
+    sfx.unlocked();
+    setTimeout(() => sfx.clear(), 250);
+    vibrate([30, 40, 80]);
+    renderExped();
+    // comemoração em cima da cena do pomar
+    ui.baseBanner.textContent = b.name + (b.id === 'torre' ? ' construída!' : ' construído!');
+    ui.baseBanner.classList.remove('show');
+    void ui.baseBanner.offsetWidth;
+    ui.baseBanner.classList.add('show');
+    ui.baseScene.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  // Ninho: começa a expedição com um power-up de presente
+  function giveNestPower() {
+    const opts = ['slow', 'magnet', 'ghost'];
+    const k = opts[Math.floor(Math.random() * opts.length)];
+    buffs[k] = phaseTime + POWERS[k].dur;
+    if (k === 'ghost') { ghostUntil = Math.max(ghostUntil, buffs[k]); ghostWarned = false; }
+    const h = snake[0];
+    floaters.push({ x: h.x + 0.5, y: h.y - 0.6, text: 'Presente do Ninho: ' + POWERS[k].name + '!', life: 0, max: 1600, color: POWERS[k].color, size: 0.6 });
+    rings.push({ x: h.x + 0.5, y: h.y + 0.5, life: 0, max: 600, color: POWERS[k].color, size: 2.2 });
+    sfx.power();
+    renderBuffs(true);
+  }
+
+  // cena do pomar no topo da base: cinza e em ruínas, ganha cor e construções
+  function drawBaseScene() {
+    const cv = ui.baseScene;
+    const g = cv.getContext('2d');
+    const W = cv.width;
+    const H = cv.height;
+    const p = save.exped.builds.length / BUILDS.length;
+    const sat = 0.2 + 0.8 * p;
+    const tone = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const gg = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      const l = r * 0.3 + gg * 0.59 + b * 0.11;
+      const m = (c) => Math.round(l + (c - l) * sat);
+      return `rgb(${m(r)},${m(gg)},${m(b)})`;
+    };
+    const rect = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    const disc = (cx, cy, r, c) => { g.fillStyle = c; for (let y = -r; y <= r; y++) { const w = Math.floor(Math.sqrt(r * r - y * y + r * 0.5)); g.fillRect(cx - w, cy + y, w * 2 + 1, 1); } };
+
+    ['#5ab8ff', '#7cc8ff', '#a8dcff', '#ffd8e8'].forEach((c, i) => rect(0, i * 10, W, i === 3 ? 20 : 10, tone(c)));
+    if (p > 0) disc(W - 22, 12, 6, tone('#ffe36a'));
+    for (let x = 0; x < W; x++) rect(x, 38 - Math.round(Math.sin(x * 0.05) * 3), 1, 30, tone('#7cc46a'));
+    rect(0, 46, W, H - 46, tone('#5aa84a'));
+    for (let i = 0; i < 40; i++) rect((i * 37) % W, 48 + ((i * 13) % 14), 1, 2, tone('#3f8a35'));
+
+    // árvores (ganham folhas e frutas conforme o pomar volta à vida)
+    const tree = (x, y, fruits) => {
+      rect(x - 1, y - 12, 3, 12, tone('#6b4020'));
+      if (p === 0) { rect(x - 5, y - 15, 4, 1, tone('#6b4020')); rect(x + 2, y - 17, 4, 1, tone('#6b4020')); return; }
+      disc(x, y - 17, 7, tone('#3f9a45'));
+      disc(x - 2, y - 19, 3, tone('#5fbf4f'));
+      if (fruits) [[-4, -15], [3, -19], [1, -13], [-1, -21]].forEach(([dx, dy], i) => { if (i < 1 + Math.round(p * 3)) rect(x + dx, y + dy, 2, 2, tone('#e8393f')); });
+    };
+    tree(18, 50, true);
+    tree(140, 52, true);
+    tree(76, 44, p >= 0.66);
+
+    // canteiro vazio: contorno tracejado com "?"
+    const lot = (x, y, w, h) => {
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      for (let i = 0; i < w; i += 3) { g.fillRect(x + i, y, 2, 1); g.fillRect(x + i, y + h - 1, 2, 1); }
+      for (let i = 0; i < h; i += 3) { g.fillRect(x, y + i, 1, 2); g.fillRect(x + w - 1, y + i, 1, 2); }
+      [[1, 0], [2, 0], [3, 1], [2, 2], [2, 4]].forEach(([dx, dy]) => g.fillRect(x + w / 2 - 2 + dx, y + h / 2 - 3 + dy, 1, 1));
+    };
+
+    if (hasBuild('poco')) {
+      rect(36, 46, 16, 9, '#7a7f8c'); rect(36, 46, 16, 2, '#a8b0c0');
+      for (let i = 0; i < 4; i++) rect(37 + i * 4, 49 + (i % 2), 3, 1, '#5a5f6c');
+      rect(38, 47, 12, 2, '#2a5a8a');
+      rect(37, 34, 2, 12, '#8a5a34'); rect(49, 34, 2, 12, '#8a5a34');
+      rect(34, 31, 20, 3, '#b4532a'); rect(36, 29, 16, 2, '#d0703a');
+      rect(43, 36, 2, 5, '#c0a070'); rect(42, 41, 4, 3, '#8a5a34');
+    } else lot(34, 36, 20, 19);
+
+    if (hasBuild('ninho')) {
+      rect(132, 35, 16, 4, '#8a5a34'); rect(134, 33, 12, 2, '#a8743a'); rect(133, 37, 14, 1, '#5a3a1f');
+      rect(136, 32, 3, 3, '#f4f0e0'); rect(140, 31, 3, 4, '#f4f0e0'); rect(144, 32, 2, 3, '#e8f4ff');
+    } else lot(130, 28, 20, 12);
+
+    if (hasBuild('torre')) {
+      rect(100, 18, 14, 38, '#6a6478'); rect(100, 18, 3, 38, '#8a849a');
+      for (let y = 22; y < 54; y += 6) rect(100, y, 14, 1, '#4a4458');
+      rect(98, 14, 18, 4, '#7a3a6a'); rect(102, 10, 10, 4, '#9a4a8a'); rect(106, 6, 2, 4, '#ffd84a');
+      rect(105, 26, 4, 5, '#ffd84a');
+    } else lot(98, 22, 18, 33);
+
+    // a cobrinha morando no pomar
+    const cols = ['#ff5d9e', '#ffd84a', '#6dff8a', '#4af0ff', '#b07bff'];
+    for (let i = 0; i < 5; i++) rect(62 + i * 4, 56 + (i % 2), 4, 4, tone(cols[i]));
+    rect(82, 55, 5, 5, tone('#6dff8a'));
+    rect(85, 56, 1, 1, '#ffffff');
+  }
+
   function nearestItem() {
     const h = snake[0];
     let best = null;
@@ -2046,6 +2234,7 @@
     const h = snake[0];
     hole(h.x * T + 8, h.y * T + 8, T * 5);
     if (toca) hole(toca.x * T + 8, toca.y * T + 8, T * 3);
+    if (hasBuild('torre')) items.forEach((it) => { if (it.kind === 'semente') hole(it.x * T + 8, it.y * T + 8, T * 1.8); });
     g.globalCompositeOperation = 'source-over';
     lctx.drawImage(nightCv, 0, 0);
   }
@@ -2237,6 +2426,10 @@
   $('retry').addEventListener('click', retryPhase);
   $('next').addEventListener('click', nextPhase);
   $('openExped').addEventListener('click', showExped);
+  ui.builds.addEventListener('click', (e) => {
+    const b = e.target.closest ? e.target.closest('[data-build]') : null;
+    if (b && !b.disabled) build(b.dataset.build);
+  });
   ui.skillTree.addEventListener('click', (e) => {
     const b = e.target.closest ? e.target.closest('.sk') : null;
     if (b && !b.disabled) buySkill(b.dataset.sk);
@@ -2651,6 +2844,7 @@
     const g = lctx;
     for (const it of items) {
       drawItemSprite(resSprite(it.kind), it);
+      if (it.kind === 'semente' && hasBuild('torre')) PX.ring(g, it.x * T + 7.5, it.y * T + 7.5, 11 + (Math.floor(now / 160) % 3) * 2, '#ffd84a');
       if (it.kind === 'semente' && Math.random() < 0.08) particles.push({ x: it.x + Math.random(), y: it.y + Math.random(), vx: 0, vy: -0.02, life: 0, max: 400, color: '#fff3a0', r: 2, g: 0 });
     }
     for (const r of rotten) {

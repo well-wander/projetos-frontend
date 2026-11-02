@@ -208,6 +208,10 @@
     <div class="menu-inner">
       <h1 class="logo small">O Pomar</h1>
       <p class="subtitle">Sua base · <span id="expRuns">nenhuma expedição ainda</span></p>
+      <div class="base-scene">
+        <canvas id="baseScene" width="160" height="64" aria-label="O pomar sendo reconstruído"></canvas>
+        <span id="baseBanner" class="base-banner"></span>
+      </div>
 
       <div class="wallet coins">
         <div class="wallet-top"><span><img id="coinIcon" class="coin-icon" alt=""> Moedas</span><b id="expCoins">0</b></div>
@@ -218,6 +222,9 @@
       <div class="market" id="market"></div>
       <p class="save-line">Galhos, pedras e sementes também vão servir para reconstruir o pomar. Pense antes de vender tudo!</p>
 
+      <h2 class="section">Reconstrução <span class="sec-count" id="buildProgress">0/3</span></h2>
+      <div class="builds" id="builds"></div>
+
       <h2 class="section">Habilidades</h2>
       <div class="skill-tree" id="skillTree"></div>
 
@@ -225,10 +232,7 @@
       <div class="locs" id="expLocs"></div>
       <p class="save-line">Colete, volte para a toca onde começou e guarde o saque. À noite o Corvo ataca. Se cair, perde metade da mochila.</p>
 
-      <h2 class="section">Em breve</h2>
-      <div class="soon">
-        <div class="soon-card">🏗️ <b>Reconstrução</b><span>Poço, Ninho e Torre de vigia, pagos com galhos, pedras e sementes.</span></div>
-      </div>
+
       <button class="btn" type="button" id="expBack" style="--c:#ffffff;--d:#b9a8d9">◀ Voltar ao menu</button>
     </div>
   </section>
