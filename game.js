@@ -237,6 +237,8 @@
   const resSprite = (k) => (k === 'maca' ? PX.apple('red') : PX.resource(k));
   const resImgCache = {};
   const resImg = (k) => resImgCache[k] || (resImgCache[k] = PX.canvasURL(resSprite(k), 2));
+  const PRICE = { maca: 3, galho: 4, pedra: 5, semente: 30 };
+  const BUILD_USE = { galho: 'constrói', pedra: 'constrói', semente: 'constrói a Torre' };
   const EXP = { day: 75000, cap: 10, tick: 150, items: 3, respawn: 3500, minDist: 6 };
   const LOCS = {
     colina: {
@@ -393,7 +395,7 @@
       musicOff: false,
       seenStory: false,
       dpad: 'auto', // auto | on | off
-      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, runs: 0, tips: {} },
+      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, moedas: 0, runs: 0, tips: {} },
     };
   }
 
@@ -419,6 +421,7 @@
     const ex = o.exped && typeof o.exped === 'object' ? o.exped : {};
     for (const k of ['maca', 'galho', 'pedra', 'semente']) d.exped.inv[k] = num(pick(ex.inv, k), 0, 1e6);
     d.exped.runs = num(ex.runs, 0, 1e6);
+    d.exped.moedas = num(ex.moedas, 0, 1e9);
     if (ex.tips && typeof ex.tips === 'object') d.exped.tips = Object.assign({}, ex.tips);
     if (SKINS[d.skin].cost > d.total) d.skin = 'arco';
     return d;
@@ -469,7 +472,7 @@
     skins: $('skins'), diffs: $('diffs'), phases: $('phases'), play: $('play'),
     sfxToggle: $('sfxToggle'), musicToggle: $('musicToggle'),
     dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'), hint: document.querySelector('.hint'),
-    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expInv: $('expInv'), expLocs: $('expLocs'),
+    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expCoins: $('expCoins'), market: $('market'), expLocs: $('expLocs'),
     result: $('result'), resultKicker: $('resultKicker'), resultTitle: $('resultTitle'), resultReason: $('resultReason'),
     resultLoot: $('resultLoot'), resultLost: $('resultLost'), phaseLabel: $('phaseLabel'), scoreLabel: $('scoreLabel'), pauseNote: $('pauseNote'),
   };
@@ -1100,7 +1103,7 @@
     }
   });
   window.addEventListener('appinstalled', () => { ui.installApp.hidden = true; });
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
   }
 
@@ -1850,10 +1853,10 @@
   }
 
   function renderExped() {
-    const inv = save.exped.inv;
-    const total = RES_KEYS.reduce((t, k) => t + inv[k], 0);
-    ui.expRuns.textContent = save.exped.runs ? `${save.exped.runs} ${save.exped.runs === 1 ? 'expedição' : 'expedições'}` : '';
-    ui.expInv.innerHTML = total ? lootHTML(inv) : '<span class="small">Vazio. Faça sua primeira expedição!</span>';
+    const runs = save.exped.runs;
+    ui.expRuns.textContent = runs ? `${runs} ${runs === 1 ? 'expedição' : 'expedições'}` : 'nenhuma expedição ainda';
+    ui.expCoins.textContent = fmt(save.exped.moedas);
+    renderMarket();
     ui.expLocs.innerHTML = '';
     Object.keys(LOCS).forEach((key) => {
       const L = LOCS[key];
@@ -1867,6 +1870,53 @@
       b.addEventListener('click', () => startExpedition(key));
       ui.expLocs.append(b);
     });
+  }
+
+  // mercado: vender 1 ou vender tudo de cada recurso
+  function renderMarket() {
+    const inv = save.exped.inv;
+    const ae = document.activeElement;
+    const focusedId = ae && ae.dataset ? ae.dataset.id : null;
+    ui.market.innerHTML = RES_KEYS.map((k) => {
+      const q = inv[k];
+      const all = q * PRICE[k];
+      return `<div class="m-row${q ? '' : ' empty'}" data-k="${k}">
+        <img src="${resImg(k)}" alt="">
+        <span class="m-name">${RES[k].plural}${BUILD_USE[k] ? ` <i class="m-tag">${BUILD_USE[k]}</i>` : ''}<small>${PRICE[k]} ${PRICE[k] === 1 ? 'moeda' : 'moedas'} cada</small></span>
+        <b class="m-qty">${q}</b>
+        <button type="button" class="m-btn" data-id="sell1-${k}" data-k="${k}" data-n="1" data-silent="1"${q ? '' : ' disabled'}>Vender 1</button>
+        <button type="button" class="m-btn all" data-id="sellall-${k}" data-k="${k}" data-n="all" data-silent="1"${q ? '' : ' disabled'}>Tudo <small>+${fmt(all)}</small></button>
+      </div>`;
+    }).join('');
+    const refocus = focusedId && ui.market.querySelector(`[data-id="${focusedId}"]`);
+    if (refocus && !refocus.disabled) refocus.focus();
+  }
+
+  function sell(k, n) {
+    const inv = save.exped.inv;
+    const qty = n === 'all' ? inv[k] : Math.min(1, inv[k]);
+    if (!qty) { sfx.deny(); return; }
+    const gain = qty * PRICE[k];
+    inv[k] -= qty;
+    save.exped.moedas += gain;
+    persist();
+    sfx.coin(qty);
+    vibrate(12);
+    const row = ui.market.querySelector(`.m-row[data-k="${k}"]`);
+    const r = row ? row.getBoundingClientRect() : null;
+    renderMarket();
+    ui.expCoins.textContent = fmt(save.exped.moedas);
+    bump(ui.expCoins);
+    // moedinha subindo a partir da linha vendida
+    if (r) {
+      const pop = document.createElement('span');
+      pop.className = 'coin-pop';
+      pop.textContent = '+' + fmt(gain);
+      pop.style.left = (r.right - 70) + 'px';
+      pop.style.top = (r.top + r.height / 2 - 14) + 'px';
+      document.body.append(pop);
+      setTimeout(() => pop.remove(), 900);
+    }
   }
 
   function nearestItem() {
@@ -2114,6 +2164,11 @@
   $('retry').addEventListener('click', retryPhase);
   $('next').addEventListener('click', nextPhase);
   $('openExped').addEventListener('click', showExped);
+  ui.market.addEventListener('click', (e) => {
+    const b = e.target.closest ? e.target.closest('.m-btn') : null;
+    if (b && !b.disabled) sell(b.dataset.k, b.dataset.n);
+  });
+  $('coinIcon').src = PX.canvasURL(PX.resource('moeda'), 2);
   $('expBack').addEventListener('click', () => showMenu(true));
   $('resultAgain').addEventListener('click', () => startExpedition(lastLoc));
   $('resultBase').addEventListener('click', showExped);

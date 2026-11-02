@@ -464,6 +464,20 @@
       const g = c.getContext('2d');
       g.fillStyle = '#ffffff';
       [[13, 2], [13, 4], [12, 3], [14, 3]].forEach(([x, y]) => g.fillRect(x, y, 1, 1));
+    } else if (kind === 'moeda') {
+      c = paint16((x, y) => {
+        const d = Math.hypot(x - 8, y - 8.5);
+        if (d > 6.6) return null;
+        if (d > 4.6 && d < 5.4) return '#d68a00';
+        if ((x - 5.8) ** 2 + (y - 6) ** 2 < 2) return '#fff6c0';
+        return x + y > 17.5 ? '#e8a810' : '#ffd84a';
+      });
+      outlineInner(c);
+      const g = c.getContext('2d');
+      g.fillStyle = '#b36a00';
+      g.fillRect(7, 6, 2, 6);
+      g.fillRect(6, 7, 1, 1);
+      g.fillRect(9, 10, 1, 1);
     } else if (kind === 'toca') {
       c = paint16((x, y) => {
         const dx = (x - 8) / 7.6;

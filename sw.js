@@ -1,6 +1,6 @@
 // Guarda o jogo no aparelho para funcionar sem internet.
 // Com internet, sempre busca a versão mais nova (e atualiza a cópia guardada).
-const CACHE = 'cobrinha-v5';
+const CACHE = 'cobrinha-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -49,8 +49,10 @@ self.addEventListener('fetch', (e) => {
   if (rel.indexOf('/') >= 0 && rel.indexOf('icons/') !== 0) return;
 
   // arquivos do jogo: tenta a internet primeiro; sem conexão, usa a cópia guardada
+  // "no-cache" faz o navegador sempre conferir com o servidor se o arquivo mudou
+  const fresh = req.mode === 'navigate' ? req : new Request(req, { cache: 'no-cache' });
   e.respondWith(
-    fetch(req)
+    fetch(fresh)
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

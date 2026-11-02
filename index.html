@@ -145,7 +145,7 @@
           <p class="detail lost" id="resultLost"></p>
           <div class="actions">
             <button class="btn" type="button" id="resultAgain" style="--c:#6dff8a;--d:#25a548">Ir de novo</button>
-            <button class="btn" type="button" id="resultBase" style="--c:#ffd84a;--d:#d29a00">Escolher local</button>
+            <button class="btn" type="button" id="resultBase" style="--c:#ffd84a;--d:#d29a00">Voltar ao pomar</button>
           </div>
           <p class="keyhint">Espaço para ir de novo</p>
         </div>
@@ -206,19 +206,27 @@
 
   <section id="exped" class="menu" aria-label="Expedições">
     <div class="menu-inner">
-      <h1 class="logo small">Expedições</h1>
-      <p class="subtitle">Reconstrua o Pomar Arco-Íris</p>
+      <h1 class="logo small">O Pomar</h1>
+      <p class="subtitle">Sua base · <span id="expRuns">nenhuma expedição ainda</span></p>
 
-      <div class="wallet">
-        <div class="wallet-top"><span>Seu estoque</span><b id="expRuns"></b></div>
-        <div class="loot" id="expInv"></div>
-        <p class="small">Em breve: vender, evoluir habilidades e reconstruir o pomar com o que você trouxer.</p>
+      <div class="wallet coins">
+        <div class="wallet-top"><span><img id="coinIcon" class="coin-icon" alt=""> Moedas</span><b id="expCoins">0</b></div>
+        <p class="small">Venda o que trouxer das expedições. Em breve: gastar moedas em habilidades.</p>
       </div>
+
+      <h2 class="section">Mercado</h2>
+      <div class="market" id="market"></div>
+      <p class="save-line">Galhos, pedras e sementes também vão servir para reconstruir o pomar. Pense antes de vender tudo!</p>
 
       <h2 class="section">Para onde ir?</h2>
       <div class="locs" id="expLocs"></div>
-
       <p class="save-line">Colete, volte para a toca onde começou e guarde o saque. À noite o Corvo ataca. Se cair, perde metade da mochila.</p>
+
+      <h2 class="section">Em breve</h2>
+      <div class="soon">
+        <div class="soon-card">🌱 <b>Habilidades</b><span>Mochila maior, dias mais longos e mais sorte.</span></div>
+        <div class="soon-card">🏗️ <b>Reconstrução</b><span>Poço, Ninho e Torre de vigia.</span></div>
+      </div>
       <button class="btn" type="button" id="expBack" style="--c:#ffffff;--d:#b9a8d9">◀ Voltar ao menu</button>
     </div>
   </section>
