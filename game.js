@@ -226,6 +226,90 @@
   const powerSprite = (k) => PX.big('pw_' + k, PX.PAL['pw_' + k], 'pw_' + k, 2);
   const powerImg = (k) => PX.canvasURL(powerSprite(k), 2);
 
+  // ---- modo Expedições: recursos, regras e locais (números em docs/expedicoes.md) ----
+  const RES = {
+    maca: { name: 'Maçã', plural: 'Maçãs', color: '#e8393f' },
+    galho: { name: 'Galho', plural: 'Galhos', color: '#b07440' },
+    pedra: { name: 'Pedra', plural: 'Pedras', color: '#a8b0c0' },
+    semente: { name: 'Semente', plural: 'Sementes', color: '#ffcc33' },
+  };
+  const RES_KEYS = Object.keys(RES);
+  const resSprite = (k) => (k === 'maca' ? PX.apple('red') : PX.resource(k));
+  const resImgCache = {};
+  const resImg = (k) => resImgCache[k] || (resImgCache[k] = PX.canvasURL(resSprite(k), 2));
+  const EXP = { day: 75000, cap: 10, tick: 150, items: 3, respawn: 3500, minDist: 6 };
+  const LOCS = {
+    colina: {
+      name: 'Colina do Pomar', short: 'Colina', theme: 0, music: 'p1', danger: 'baixo', dangerLevel: 1, rottenDay: 0,
+      mix: { maca: 0.6, galho: 0.4 }, powers: ['slow', 'magnet'],
+      inner: [
+        '..............',
+        '..##......##..',
+        '..#........#..',
+        '..............',
+        '.....#..#.....',
+        '..............',
+        '..............',
+        '..............',
+        '..............',
+        '.....#..#.....',
+        '..............',
+        '..#........#..',
+        '..##......##..',
+        '..............',
+      ],
+    },
+    lago: {
+      name: 'Lago Espelho', short: 'Lago', theme: 1, music: 'p2', danger: 'médio', dangerLevel: 2, rottenDay: 0,
+      mix: { maca: 0.4, pedra: 0.6 }, powers: ['slow', 'magnet', 'ghost'],
+      inner: [
+        '..............',
+        '.###......###.',
+        '.#..........#.',
+        '.....####.....',
+        '..............',
+        '.##........##.',
+        '.#....##....#.',
+        '.#....##....#.',
+        '.##........##.',
+        '..............',
+        '.....####.....',
+        '.#..........#.',
+        '.###......###.',
+        '..............',
+      ],
+    },
+    floresta: {
+      name: 'Floresta Sussurro', short: 'Floresta', theme: 2, music: 'p3', danger: 'alto', dangerLevel: 3, rottenDay: 1,
+      mix: { galho: 0.5, maca: 0.35, semente: 0.15 }, powers: ['slow', 'magnet', 'ghost'],
+      inner: [
+        '................',
+        '.##..##..##..##.',
+        '.##..##..##..##.',
+        '................',
+        '....#......#....',
+        '.##.#..##..#.##.',
+        '....#..##..#....',
+        '................',
+        '................',
+        '....#..##..#....',
+        '.##.#..##..#.##.',
+        '....#......#....',
+        '................',
+        '.##..##..##..##.',
+        '.##..##..##..##.',
+        '................',
+      ],
+    },
+  };
+  // a toca (ponto de partida e de volta) fica embaixo, no meio, na margem livre
+  Object.keys(LOCS).forEach((k) => {
+    const L = LOCS[k];
+    L.map = pad(L.inner);
+    const n = L.map.length;
+    L.start = [Math.floor(n / 2), n - 2];
+  });
+
   const DIFFS = {
     facil:   { name: 'Fácil',   emoji: '🐢', tick: 190, dec: 3, mult: 1,   color: '#6dff8a' },
     medio:   { name: 'Médio',   emoji: '🐍', tick: 145, dec: 4, mult: 1.5, color: '#ffd84a' },
@@ -309,6 +393,7 @@
       musicOff: false,
       seenStory: false,
       dpad: 'auto', // auto | on | off
+      exped: { inv: { maca: 0, galho: 0, pedra: 0, semente: 0 }, runs: 0, tips: {} },
     };
   }
 
@@ -331,6 +416,10 @@
     d.musicOff = !!o.musicOff;
     d.seenStory = !!o.seenStory;
     if (['auto', 'on', 'off'].indexOf(o.dpad) >= 0) d.dpad = o.dpad;
+    const ex = o.exped && typeof o.exped === 'object' ? o.exped : {};
+    for (const k of ['maca', 'galho', 'pedra', 'semente']) d.exped.inv[k] = num(pick(ex.inv, k), 0, 1e6);
+    d.exped.runs = num(ex.runs, 0, 1e6);
+    if (ex.tips && typeof ex.tips === 'object') d.exped.tips = Object.assign({}, ex.tips);
     if (SKINS[d.skin].cost > d.total) d.skin = 'arco';
     return d;
   }
@@ -379,12 +468,16 @@
     total: $('total'), nextFill: $('nextFill'), nextText: $('nextText'),
     skins: $('skins'), diffs: $('diffs'), phases: $('phases'), play: $('play'),
     sfxToggle: $('sfxToggle'), musicToggle: $('musicToggle'),
-    dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'),
+    dpad: $('dpad'), dpadToggle: $('dpadToggle'), installApp: $('installApp'), goalLabel: $('goalLabel'), hint: document.querySelector('.hint'),
+    tip: $('tip'), exped: $('exped'), expRuns: $('expRuns'), expInv: $('expInv'), expLocs: $('expLocs'),
+    result: $('result'), resultKicker: $('resultKicker'), resultTitle: $('resultTitle'), resultReason: $('resultReason'),
+    resultLoot: $('resultLoot'), resultLost: $('resultLost'), phaseLabel: $('phaseLabel'), scoreLabel: $('scoreLabel'), pauseNote: $('pauseNote'),
   };
   const fmt = (n) => Math.round(n).toLocaleString('pt-BR');
   const appleURL = PX.canvasURL(PX.apple('red'), 2);
   document.querySelectorAll('[data-apple-icon]').forEach((img) => { img.src = appleURL; });
   const goalLabelHTML = ui.goalLabel.innerHTML;
+  const HINT_CAMPAIGN = ui.hint.textContent;
 
   // =====================================================================
   //  ESTADO
@@ -433,6 +526,17 @@
   let warnTick = 0;
   let emberTimer = 0;
   let boss = null;
+  // modo Expedições
+  let mode = 'campaign';
+  let loc = null;
+  let items = [];
+  let itemTimer = 0;
+  let carry = [];
+  let toca = null;
+  let leftToca = false;
+  let nightOn = false;
+  let duskWarned = false;
+  let fullWarned = 0;
   let deathAt = 0;
   let deathReason = '';
   let burstIdx = 0;
@@ -590,6 +694,7 @@
   const wrapDelta = (from, to) => { let d = to - from; if (d > N / 2) d -= N; else if (d < -N / 2) d += N; return d; };
 
   const itemAt = (x, y) =>
+    items.some((it) => it.x === x && it.y === y) ||
     (apple && apple.x === x && apple.y === y) ||
     (golden && golden.x === x && golden.y === y) ||
     (power && power.x === x && power.y === y) ||
@@ -599,6 +704,7 @@
     grid[y * N + x] === 0 &&
     !portalMap.has(y * N + x) &&
     !snake.some((s) => s.x === x && s.y === y) &&
+    !(toca && toca.x === x && toca.y === y) &&
     !itemAt(x, y);
 
   function spawnFree(minDist = 0) {
@@ -612,9 +718,10 @@
     return null;
   }
 
-  function setupPhase(idx) {
+  function setupPhase(idx, def) {
     phaseIdx = idx;
-    P = PHASES[idx];
+    P = def || PHASES[idx];
+    mode = P.expedition ? 'expedition' : 'campaign';
     theme = THEMES[P.theme];
     D = DIFFS[save.diff];
     SKIN = SKINS[save.skin];
@@ -627,7 +734,7 @@
     queue = [];
     grow = 0;
     applesEaten = 0;
-    tick = D.tick - idx * D.dec;
+    tick = P.expedition ? EXP.tick : D.tick - idx * D.dec;
     acc = 0;
     phaseTime = 0;
     combo = 1;
@@ -652,8 +759,17 @@
     particles.length = 0;
     floaters.length = 0;
     rings.length = 0;
-    apple = spawnFree(3);
+    items = [];
+    carry = [];
+    itemTimer = 0;
+    nightOn = false;
+    duskWarned = false;
+    fullWarned = 0;
+    toca = P.expedition ? { x: P.start[0], y: P.start[1] } : null;
+    leftToca = false;
+    apple = P.expedition ? null : spawnFree(3);
     if (apple) apple.nextHop = 0;
+    if (P.expedition) for (let i = 0; i < EXP.items; i++) spawnResource();
 
     buildBackground();
     mapBorn = now;
@@ -681,6 +797,7 @@
     phaseStartScore = score;
     setupPhase(idx);
     state = 'intro';
+    ui.hint.textContent = HINT_CAMPAIGN;
     ui.introKicker.textContent = `Terra ${idx + 1} de ${PHASES.length} · ${D.name}`;
     ui.introName.textContent = P.name;
     ui.introGoal.textContent = P.boss ? `Derrote o Corvo: ${BOSS_HP[save.diff]} golpes` : `Meta: ${P.goal} maçãs`;
@@ -707,7 +824,8 @@
     state = 'play';
     acc = 0;
     sfx.start();
-    music.play('p' + (phaseIdx + 1));
+    music.play(levelMusic());
+    if (P.expedition) tipOnce('inicio', 'Pegue recursos e volte para a toca onde começou!');
   }
 
   function retryPhase() {
@@ -722,6 +840,7 @@
     if (state === 'play' || state === 'ready') {
       pausedFrom = state;
       state = 'pause';
+      ui.pauseNote.textContent = P.expedition ? 'Sair agora perde tudo o que está na mochila.' : '';
       showOverlay(ui.pause);
       music.duck(true);
     } else if (state === 'pause') {
@@ -781,7 +900,8 @@
 
   function navRoot() {
     if (state === 'menu') return ui.menu;
-    return [ui.intro, ui.pause, ui.dead, ui.clear, ui.victory].find((o) => o.classList.contains('show')) || null;
+    if (state === 'exped') return ui.exped;
+    return [ui.intro, ui.pause, ui.dead, ui.clear, ui.victory, ui.result].find((o) => o.classList.contains('show')) || null;
   }
 
   // anda pelo menu com as setas, escolhendo o botão mais próximo na direção
@@ -829,7 +949,7 @@
       return;
     }
     if (onButton && (k === 'enter' || k === ' ')) return; // o próprio botão responde
-    if (KEYS[k] && state !== 'menu') {
+    if (KEYS[k] && state !== 'menu' && state !== 'exped') {
       e.preventDefault();
       pushDir(KEYS[k][0], KEYS[k][1]);
       return;
@@ -845,6 +965,7 @@
       else if (state === 'dead') retryPhase();
       else if (state === 'clear' && clearShown) nextPhase();
       else if (state === 'victory') showMenu(true);
+      else if (state === 'result') startExpedition(lastLoc);
     } else if (k === 'p' || k === 'escape') {
       if (state === 'play' || state === 'ready' || state === 'pause') { e.preventDefault(); togglePause(); }
     } else if (k === 'm') {
@@ -993,8 +1114,13 @@
     prev = snake.map((p) => ({ x: p.x, y: p.y }));
 
     const h = snake[0];
-    const rawX = h.x + dir.x;
-    const rawY = h.y + dir.y;
+    let rawX = h.x + dir.x;
+    let rawY = h.y + dir.y;
+    if (P.expedition && (rawX < 0 || rawY < 0 || rawX >= N || rawY >= N)) {
+      if (!slideAlongEdge(h)) return die('Ficou encurralada na borda!');
+      rawX = h.x + dir.x;
+      rawY = h.y + dir.y;
+    }
     let nx = (rawX + N) % N;
     let ny = (rawY + N) % N;
     const wrapped = rawX !== nx || rawY !== ny;
@@ -1031,6 +1157,12 @@
     // o modo fantasma não pode acabar com a cabeça dentro de uma barreira
     if (phaseTime < ghostUntil && grid[ny * N + nx] !== 0) ghostUntil = Math.max(ghostUntil, phaseTime + tickNow() + 1);
 
+    if (P.expedition) {
+      if (nx !== toca.x || ny !== toca.y) leftToca = true;
+      else if (leftToca && carry.length) { extract(); return; }
+      const ii = items.findIndex((it) => it.x === nx && it.y === ny);
+      if (ii >= 0) collect(ii);
+    }
     if (boss && boss.mode === 'landed' && nx >= boss.target.x && nx <= boss.target.x + 1 && ny >= boss.target.y && ny <= boss.target.y + 1) bossHit();
     if (state !== 'play') return;
     if (apple && nx === apple.x && ny === apple.y) eat(apple, 'red');
@@ -1116,6 +1248,7 @@
       prev.pop();
       burst(s.x + 0.5, s.y + 0.5, ROT_COLORS, 10, 0.8);
     }
+    if (P.expedition) syncCarry();
 
     burst(cx, cy, ROT_COLORS, 22, 1);
     rings.push({ x: cx, y: cy, life: 0, max: 450, color: '#9aa84a', size: 1.6 });
@@ -1228,6 +1361,7 @@
   }
 
   function showDeadScreen() {
+    if (P.expedition) { finishExpedition(false); return; }
     state = 'dead';
     recordBest();
     ui.deadReason.textContent = deathReason;
@@ -1375,12 +1509,12 @@
   // depois de cruzar o céu, o Corvo escolhe: pousar (chance de bater nele) ou dar um rasante
   function bossNextAttack() {
     const b = boss;
-    if (b.hp < b.max && Math.random() < 0.45) {
+    if (b.night || (b.hp < b.max && Math.random() < 0.45)) {
       const h = snake[0];
       const axis = Math.random() < 0.5 ? 'row' : 'col';
       b.line = { axis, idx: axis === 'row' ? h.y : h.x, rev: Math.random() < 0.5 };
       b.mode = 'warnDive';
-      b.t = 1400 - (b.max - b.hp) * 60;
+      b.t = b.night ? Math.max(900, 1400 - nightSecs() * 6) : 1400 - (b.max - b.hp) * 60;
       sfx.warn();
       return;
     }
@@ -1401,7 +1535,7 @@
       const col = Math.floor((b.x + 16) / T);
       if (!b.dropped && col === b.dropCol) {
         b.dropped = true;
-        if (rotten.length < P.rotten) {
+        if (rotten.length < (b.night ? Math.max(2, P.rotten) : P.rotten)) {
           for (const oy of [0, 1, -1, 2, -2]) {
             const y = (b.row + oy + N) % N;
             if (isFree(col, y) && dist(snake[0], { x: col, y }) >= 3) {
@@ -1437,7 +1571,7 @@
       b.pos = k * (N + 4) - 2;
       const along = b.line.rev ? N - 1 - Math.floor(b.pos) : Math.floor(b.pos);
       if (along >= 0 && along < N) diveHit(along);
-      if (b.t <= 0) { b.mode = 'wait'; b.t = 1300; }
+      if (b.t <= 0) { b.mode = 'wait'; b.t = b.night ? Math.max(500, 1300 - nightSecs() * 10) : 1300; }
     } else if (b.mode === 'hurt') {
       if (b.t <= 0) { b.mode = 'wait'; b.t = 1100; }
     }
@@ -1462,6 +1596,7 @@
     prev.splice(i);
     removed.forEach((p, j) => debris.push({ x: p.x, y: p.y, at: now + 120 + j * 60, color: SKIN.color(i + j, n, 2) }));
     grow = 0;
+    if (P.expedition) syncCarry();
     const pen = Math.round(BASE_POINTS * 2 * D.mult);
     addPoints(-pen);
     floaters.push({ x: cx + 0.5, y: cy - 0.2, text: `Bicada! -${pen}`, life: 0, max: 1200, color: '#ff3b5c', size: 0.8 });
@@ -1503,6 +1638,298 @@
   }
 
   // =====================================================================
+  //  MODO EXPEDIÇÕES
+  // =====================================================================
+  function capNow() { return EXP.cap; }
+  const nightSecs = () => Math.max(0, (phaseTime - EXP.day) / 1000);
+
+  function locDef(key) {
+    const L = LOCS[key];
+    return {
+      name: L.name, theme: L.theme, map: L.map, start: L.start, powers: L.powers,
+      rotten: L.rottenDay, golden: false, runner: false, goal: 1, expedition: true, key,
+    };
+  }
+
+  function spawnResource() {
+    for (let tries = 0; tries < 20; tries++) {
+      const p = spawnFree(3);
+      if (!p) return;
+      if (toca && dist(p, toca) < EXP.minDist) continue;
+      if (items.some((it) => Math.abs(it.x - p.x) + Math.abs(it.y - p.y) < 4)) continue;
+      let r = Math.random();
+      let kind = 'maca';
+      for (const k in loc.mix) { r -= loc.mix[k]; if (r <= 0) { kind = k; break; } }
+      items.push({ x: p.x, y: p.y, born: now, t0: phaseTime, kind });
+      return;
+    }
+  }
+
+  function countItems(list) {
+    const out = {};
+    list.forEach((k) => { out[k] = (out[k] || 0) + 1; });
+    return out;
+  }
+
+  // cada item carregado é um gomo do corpo (os 3 primeiros gomos são a cobra "vazia")
+  function syncCarry() {
+    const room = Math.max(0, snake.length + grow - 3);
+    if (carry.length > room) carry.length = room;
+  }
+
+  // dica curta que aparece só na primeira vez
+  let tipTimer = 0;
+  function showTip(text) {
+    ui.tip.textContent = text;
+    ui.tip.classList.add('show');
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => ui.tip.classList.remove('show'), 3800);
+  }
+  function tipOnce(key, text) {
+    if (save.exped.tips[key]) return;
+    save.exped.tips[key] = true;
+    persist();
+    showTip(text);
+  }
+
+  // borda da expedição: em vez de atravessar, a cobra vira e desliza rente à parede
+  function slideAlongEdge(h) {
+    const opts = dir.x !== 0 ? [{ x: 0, y: -1 }, { x: 0, y: 1 }] : [{ x: -1, y: 0 }, { x: 1, y: 0 }];
+    const room = (d) => (d.y === -1 ? h.y : d.y === 1 ? N - 1 - h.y : d.x === -1 ? h.x : N - 1 - h.x);
+    opts.sort((a, b) => room(a) - room(b)); // lateral mais próxima primeiro
+    for (const o of opts) {
+      const cx = h.x + o.x;
+      const cy = h.y + o.y;
+      if (cx < 0 || cy < 0 || cx >= N || cy >= N) continue;
+      if (wallAt(cx, cy) && phaseTime >= ghostUntil) continue;
+      if (snake.some((s, i) => i < snake.length - 1 && s.x === cx && s.y === cy) && phaseTime >= ghostUntil) continue;
+      dir = o;
+      queue = [];
+      sfx.turn();
+      for (let i = 0; i < 5; i++) particles.push({ x: h.x + 0.5 + (Math.random() - 0.5), y: h.y + 0.5 + (Math.random() - 0.5), vx: 0, vy: 0, life: 0, max: 250, color: '#ffffff', r: 2, g: 0 });
+      tipOnce('borda', 'Aqui as bordas não são portais: a cobra vira sozinha.');
+      return true;
+    }
+    return false;
+  }
+
+  function collect(ii) {
+    const it = items[ii];
+    const R = RES[it.kind];
+    if (carry.length >= capNow()) {
+      if (now - fullWarned > 1500) {
+        fullWarned = now;
+        floaters.push({ x: it.x + 0.5, y: it.y - 0.2, text: 'Mochila cheia!', life: 0, max: 1000, color: '#ffd84a', size: 0.6 });
+        sfx.deny();
+        tipOnce('cheia', 'Mochila cheia! Volte para a toca para guardar.');
+      }
+      return;
+    }
+    items.splice(ii, 1);
+    carry.push(it.kind);
+    grow += 1;
+    waves.push(now);
+    headPop = 1;
+    burst(it.x + 0.5, it.y + 0.5, [R.color, '#ffffff', R.color], it.kind === 'semente' ? 36 : 18, it.kind === 'semente' ? 1.4 : 0.9);
+    rings.push({ x: it.x + 0.5, y: it.y + 0.5, life: 0, max: 400, color: R.color, size: 1.6 });
+    floaters.push({ x: it.x + 0.5, y: it.y - 0.2, text: '+1 ' + R.name, life: 0, max: 900, color: it.kind === 'semente' ? '#ffd84a' : '#ffffff', size: 0.6 });
+    if (it.kind === 'semente') { flash = { a: 0.3, color: '#ffd84a' }; shake = Math.max(shake, 10); }
+    else shake = Math.max(shake, 5);
+    sfx.eat(Math.min(carry.length, 8), it.kind === 'semente');
+    vibrate(15);
+    updateHud(true);
+    tipOnce('coleta', 'Cada item faz a cobra crescer. Volte para a toca para guardar!');
+  }
+
+  function finishExpedition(ok) {
+    const lostN = ok ? 0 : Math.floor(carry.length / 2);
+    const kept = carry.slice(0, carry.length - lostN);
+    const lost = carry.slice(carry.length - lostN);
+    const got = countItems(kept);
+    for (const k in got) save.exped.inv[k] += got[k];
+    save.exped.runs++;
+    persist();
+    state = 'result';
+    ui.resultKicker.textContent = loc.name + ' · expedição ' + save.exped.runs;
+    ui.resultTitle.textContent = ok ? (kept.length ? 'Saque guardado!' : 'Voltou de mãos vazias') : 'A cobra caiu...';
+    ui.resultReason.textContent = ok ? '' : deathReason;
+    ui.resultLoot.innerHTML = kept.length ? lootHTML(got) : '<span class="small">Nada desta vez.</span>';
+    ui.resultLost.textContent = lostN ? `Perdeu ${lostN} ${lostN === 1 ? 'item' : 'itens'} na queda (metade da mochila).` : '';
+    showOverlay(ui.result);
+  }
+
+  function extract() {
+    const h = snake[0];
+    burst(h.x + 0.5, h.y + 0.5, RAINBOW, 40, 1.2);
+    rings.push({ x: h.x + 0.5, y: h.y + 0.5, life: 0, max: 700, color: '#ffd84a', size: 3 });
+    flash = { a: 0.35, color: '#ffffff' };
+    music.stop(0.3);
+    sfx.clear();
+    vibrate([30, 40, 60]);
+    finishExpedition(true);
+  }
+
+  function lootHTML(counts) {
+    return RES_KEYS.filter((k) => counts[k]).map((k) =>
+      `<span class="loot-chip"><img src="${resImg(k)}" alt=""><b>${counts[k]}</b> ${counts[k] === 1 ? RES[k].name : RES[k].plural}</span>`).join('');
+  }
+
+  function newNightCrow() {
+    return { night: true, hp: 1, max: 1, mode: 'wait', t: 1500, x: 0, row: 0, dir: 1, target: null, line: null, dropCol: -1, dropped: false, cutDone: false, pos: 0, told: true };
+  }
+
+  let expHudTick = 0;
+  function updateExpedition(dt) {
+    const dayLeft = EXP.day - phaseTime;
+    if (!nightOn && !duskWarned && dayLeft < 10000) {
+      duskWarned = true;
+      showTip('A noite está chegando! Volte para a toca.');
+      sfx.warn();
+    }
+    if (!nightOn && dayLeft <= 0) {
+      nightOn = true;
+      boss = newNightCrow();
+      music.play('p9');
+      showToast('Anoiteceu!');
+      sfx.caw();
+      tipOnce('noite', 'À noite o Corvo ataca: fuja das faixas vermelhas!');
+    }
+    if (items.length < EXP.items) {
+      itemTimer -= dt;
+      if (itemTimer <= 0) { itemTimer = EXP.respawn; spawnResource(); }
+    }
+    expHudTick -= dt;
+    if (expHudTick <= 0) { expHudTick = 250; updateHud(); }
+  }
+
+  function updateExpHud(animate) {
+    ui.phaseLabel.textContent = 'Local';
+    ui.phase.textContent = loc.short;
+    const left = Math.max(0, EXP.day - phaseTime);
+    ui.goalLabel.textContent = nightOn ? 'Noite' : 'Dia';
+    ui.goalText.textContent = nightOn ? 'Corvo!' : `${Math.ceil(left / 1000)}s`;
+    ui.goalFill.style.width = nightOn ? '100%' : `${(left / EXP.day) * 100}%`;
+    ui.goalFill.classList.toggle('boss', nightOn);
+    ui.goalFill.classList.toggle('day', !nightOn);
+    ui.scoreLabel.textContent = 'Mochila';
+    ui.score.textContent = `${carry.length}/${capNow()}`;
+    ui.score.classList.toggle('full', carry.length >= capNow());
+    if (animate) bump(ui.score);
+  }
+
+  let lastLoc = 'colina';
+  function startExpedition(key) {
+    sfx.unlock();
+    lastLoc = key;
+    loc = LOCS[key];
+    score = 0;
+    setupPhase(0, locDef(key));
+    state = 'intro';
+    ui.exped.classList.remove('show');
+    ui.menu.classList.remove('show');
+    ui.hint.textContent = 'Setas/WASD ou deslize · volte para a toca para guardar · Espaço pausa';
+    ui.introKicker.textContent = 'Expedição · perigo ' + loc.danger;
+    ui.introName.textContent = loc.name;
+    ui.introGoal.textContent = `Mochila: ${capNow()} espaços`;
+    ui.introSize.textContent = `Dia: ${EXP.day / 1000} s`;
+    ui.introNews.textContent = 'Colete recursos e volte para a toca onde você começou. Se cair, perde metade da mochila.';
+    ui.introPowers.innerHTML = RES_KEYS.filter((k) => loc.mix[k]).map((k) =>
+      `<span class="pw-chip"><img src="${resImg(k)}" alt="">${RES[k].plural} ${Math.round(loc.mix[k] * 100)}%</span>`).join('');
+    showOverlay(ui.intro);
+    music.play(loc.music);
+  }
+
+  function showExped() {
+    state = 'exped';
+    mode = 'campaign';
+    ui.menu.classList.remove('show');
+    ui.exped.classList.add('show');
+    showOverlay(null);
+    renderExped();
+    music.play('menu');
+  }
+
+  function renderExped() {
+    const inv = save.exped.inv;
+    const total = RES_KEYS.reduce((t, k) => t + inv[k], 0);
+    ui.expRuns.textContent = save.exped.runs ? `${save.exped.runs} ${save.exped.runs === 1 ? 'expedição' : 'expedições'}` : '';
+    ui.expInv.innerHTML = total ? lootHTML(inv) : '<span class="small">Vazio. Faça sua primeira expedição!</span>';
+    ui.expLocs.innerHTML = '';
+    Object.keys(LOCS).forEach((key) => {
+      const L = LOCS[key];
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'loc';
+      b.style.setProperty('--land', THEMES[L.theme].floor[0]);
+      b.innerHTML = `<span class="loc-name">${L.name}</span>
+        <span class="loc-res">${RES_KEYS.filter((k) => L.mix[k]).map((k) => `<img src="${resImg(k)}" alt="${RES[k].name}" title="${RES[k].plural}">`).join('')}</span>
+        <span class="loc-danger d-${L.dangerLevel}">Perigo ${L.danger}</span>`;
+      b.addEventListener('click', () => startExpedition(key));
+      ui.expLocs.append(b);
+    });
+  }
+
+  function nearestItem() {
+    const h = snake[0];
+    let best = null;
+    let bd = 1e9;
+    for (const it of items) { const d = Math.abs(it.x - h.x) + Math.abs(it.y - h.y); if (d < bd) { bd = d; best = it; } }
+    return best;
+  }
+
+  function drawToca() {
+    if (!toca) return;
+    const g = lctx;
+    g.drawImage(PX.resource('toca'), toca.x * T, toca.y * T);
+    if (carry.length && Math.floor(now / 300) % 2) PX.ring(g, toca.x * T + 7.5, toca.y * T + 7.5, 11 + (Math.floor(now / 150) % 3) * 2, '#ffd84a');
+  }
+
+  // seta amarela perto da cabeça apontando para a toca quando há saque
+  function drawReturnArrow() {
+    if (!toca || !carry.length || state !== 'play') return;
+    const h = snake[0];
+    const dx = toca.x - h.x;
+    const dy = toca.y - h.y;
+    if (Math.abs(dx) + Math.abs(dy) <= 2) return;
+    if (carry.length < capNow() && !nightOn && !duskWarned && Math.floor(now / 400) % 3) return;
+    const d = Math.abs(dx) >= Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) };
+    const cx = Math.min(N - 1, Math.max(0, h.x + d.x * 2));
+    const cy = Math.min(N - 1, Math.max(0, h.y + d.y * 2));
+    if (Math.floor(now / 200) % 2) chevron(lctx, cx, cy, d, '#ffd84a');
+  }
+
+  // escuridão da noite (e do entardecer), com luz em volta da cabeça e da toca
+  const nightCv = document.createElement('canvas');
+  function drawNight() {
+    if (!P.expedition) return;
+    const dayLeft = EXP.day - phaseTime;
+    let a = 0;
+    if (nightOn) a = Math.min(0.72, 0.45 + nightSecs() * 0.006);
+    else if (dayLeft < 10000) a = (1 - dayLeft / 10000) * 0.4;
+    if (a <= 0.01) return;
+    nightCv.width = lo.width;
+    nightCv.height = lo.height;
+    const g = nightCv.getContext('2d');
+    g.fillStyle = `rgba(10,8,34,${a})`;
+    g.fillRect(0, 0, nightCv.width, nightCv.height);
+    g.globalCompositeOperation = 'destination-out';
+    const hole = (cx, cy, r) => {
+      const gr = g.createRadialGradient(cx, cy, r * 0.25, cx, cy, r);
+      gr.addColorStop(0, 'rgba(0,0,0,1)');
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr;
+      g.fillRect(cx - r, cy - r, r * 2, r * 2);
+    };
+    const h = snake[0];
+    hole(h.x * T + 8, h.y * T + 8, T * 5);
+    if (toca) hole(toca.x * T + 8, toca.y * T + 8, T * 3);
+    g.globalCompositeOperation = 'source-over';
+    lctx.drawImage(nightCv, 0, 0);
+  }
+
+  function levelMusic() { return P.expedition ? (nightOn ? 'p9' : loc.music) : 'p' + (phaseIdx + 1); }
+
+  // =====================================================================
   //  HUD, TELAS E MENU
   // =====================================================================
   function bump(el) {
@@ -1513,6 +1940,16 @@
 
   let shownScore = 0;
   function updateHud(animate = false) {
+    if (P.expedition) {
+      updateExpHud(animate);
+      ui.shield.hidden = !SKIN.shield;
+      ui.shield.classList.toggle('used', !shieldReady);
+      return;
+    }
+    ui.phaseLabel.textContent = 'Terra';
+    ui.scoreLabel.textContent = 'Pontos';
+    ui.goalFill.classList.remove('day');
+    ui.score.classList.remove('full');
     ui.phase.textContent = `${phaseIdx + 1}/${PHASES.length}`;
     if (boss) {
       ui.goalLabel.textContent = 'Corvo';
@@ -1551,7 +1988,7 @@
     }
   }
 
-  const OVERLAYS = ['intro', 'pause', 'dead', 'clear', 'victory'];
+  const OVERLAYS = ['intro', 'pause', 'dead', 'clear', 'victory', 'result'];
   function showOverlay(el) {
     OVERLAYS.forEach((k) => ui[k].classList.toggle('show', ui[k] === el));
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -1566,6 +2003,7 @@
 
   function showMenu(show = true) {
     ui.menu.classList.toggle('show', show);
+    if (show) ui.exped.classList.remove('show');
     if (show) {
       state = 'menu';
       showOverlay(null);
@@ -1675,9 +2113,14 @@
   $('resume').addEventListener('click', togglePause);
   $('retry').addEventListener('click', retryPhase);
   $('next').addEventListener('click', nextPhase);
+  $('openExped').addEventListener('click', showExped);
+  $('expBack').addEventListener('click', () => showMenu(true));
+  $('resultAgain').addEventListener('click', () => startExpedition(lastLoc));
+  $('resultBase').addEventListener('click', showExped);
   document.querySelectorAll('[data-menu]').forEach((b) => b.addEventListener('click', () => {
     recordBest();
-    showMenu(true);
+    if (mode === 'expedition') showExped();
+    else showMenu(true);
   }));
   ui.pauseBtn.addEventListener('click', () => { ui.pauseBtn.blur(); togglePause(); });
   ui.mute.addEventListener('click', () => { ui.mute.blur(); toggleSfx(); });
@@ -1751,6 +2194,7 @@
             rotten.splice(i, 1);
           }
         }
+        if (P.expedition) updateExpedition(dt);
         if (boss) updateBoss(dt);
         else if (P.rotten) {
           rottenTimer -= dt;
@@ -1844,7 +2288,7 @@
 
     if (state === 'clear' && !clearShown && now - clearAt > 1700) showClearScreen();
 
-    const progress = boss ? (boss.max - boss.hp) / boss.max : applesEaten / P.goal;
+    const progress = P.expedition ? 1 : boss ? (boss.max - boss.hp) / boss.max : applesEaten / P.goal;
     const colorTarget = state === 'clear' || state === 'victory' ? 1 : 0.3 + 0.7 * progress;
     colorAmt += (colorTarget - colorAmt) * Math.min(1, 0.05 * k);
 
@@ -1944,6 +2388,10 @@
       px(g, b.x + f + 3, b.y + f + 3, col(b.i, 3), 3, 1);
       px(g, b.x + f + 3, b.y + f + 4, col(b.i, 3), 1, 1);
       if (o.dragon && b.i > 0) px(g, b.x + f + b.s / 2, b.y + f + b.s / 2, col(b.i, 1), 2, 2);
+      if (o.mark) {
+        const m = o.mark(b.i);
+        if (m) { px(g, b.x + f + b.s / 2 - 3, b.y + f + b.s / 2 - 3, OUT, 6, 6); px(g, b.x + f + b.s / 2 - 2, b.y + f + b.s / 2 - 2, m, 4, 4); }
+      }
     }
 
     if (start === 0) {
@@ -2007,7 +2455,7 @@
     if (ghostOn && ghostLeft < GHOST_WARN) ghostLook = Math.floor(now / (ghostLeft < 600 ? 60 : 130)) % 2 === 0;
 
     const col = dead ? (i, s) => DEAD_PAL[s] : ghostLook ? (i, s) => GHOST_PAL[s] : (i, s) => SKIN.color(i, n, s);
-    const target = golden || apple;
+    const target = P.expedition ? (carry.length >= capNow() ? toca : nearestItem()) : golden || apple;
     let look = null;
     if (target && !dead) look = { x: Math.sign(wrapDelta(snake[0].x, target.x)), y: Math.sign(wrapDelta(snake[0].y, target.y)) };
 
@@ -2018,6 +2466,7 @@
       look,
       dead,
       dragon: SKIN.dragon,
+      mark: P.expedition ? (i) => (i >= 3 && carry[i - 3] ? RES[carry[i - 3]].color : null) : null,
       alpha: ghostLook ? 0.6 : 1,
       blink: !dead && (now % 3200) < 140,
       tongue: !dead && (now % 1600) < 180,
@@ -2067,6 +2516,10 @@
 
   function drawItems() {
     const g = lctx;
+    for (const it of items) {
+      drawItemSprite(resSprite(it.kind), it);
+      if (it.kind === 'semente' && Math.random() < 0.08) particles.push({ x: it.x + Math.random(), y: it.y + Math.random(), vx: 0, vy: -0.02, life: 0, max: 400, color: '#fff3a0', r: 2, g: 0 });
+    }
     for (const r of rotten) {
       if (ROTTEN_TTL - (phaseTime - r.t0) < 1500 && Math.floor(now / 150) % 2) continue;
       const pos = drawItemSprite(PX.apple('rotten'), r);
@@ -2239,7 +2692,7 @@
   }
 
   function drawEdgeHint() {
-    if (state !== 'play' && state !== 'ready') return;
+    if ((state !== 'play' && state !== 'ready') || P.expedition) return;
     const h = snake[0];
     const d = queue.length ? queue[queue.length - 1] : dir;
     for (let k = 1; k <= 4; k++) {
@@ -2304,6 +2757,7 @@
     const t = state === 'play' || state === 'pause' ? Math.min(acc / tickNow(), 1) : 1;
     drawBlinks();
     drawPortals();
+    drawToca();
     drawItems();
     for (const d of debris) {
       const shakeX = Math.round((Math.random() - 0.5) * 3);
@@ -2316,7 +2770,9 @@
     if (shieldReady && !dead && pts[0] && Math.floor(now / 250) % 2) PX.ring(g, pts[0].x + 7.5, pts[0].y + 7.5, 12, '#ffd84a');
     if (buffs.magnet && pts[0] && !dead) PX.ring(g, pts[0].x + 7.5, pts[0].y + 7.5, 14 + (Math.floor(now / 100) % 3) * 6, 'rgba(255,59,92,0.7)');
 
+    drawNight();
     drawEdgeHint();
+    drawReturnArrow();
     drawBoss();
 
     for (const r of rings) {

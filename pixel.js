@@ -400,6 +400,89 @@
   }
 
   window.Cobra = window.Cobra || {};
+  // desenha um sprite 16x16 pixel a pixel: fn(x, y) devolve a cor ou nada
+  function paint16(fn) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 16;
+    const g = c.getContext('2d');
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        const col = fn(x + 0.5, y + 0.5);
+        if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); }
+      }
+    }
+    return c;
+  }
+
+  const segDist = (px, py, ax, ay, bx, by) => {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+  };
+
+  // recursos do modo Expedições (galho, pedra, semente dourada) e a toca de saída
+  function resource(kind) {
+    const k = 'res|' + kind;
+    let c = cache.get(k);
+    if (c) return c;
+    if (kind === 'galho') {
+      c = paint16((x, y) => {
+        if (segDist(x, y, 3, 13, 13, 3) < 1.7 || segDist(x, y, 7.5, 8.5, 4, 5) < 1.2) return (x + y > 16.6 ? '#7a4a24' : '#b07440');
+        const lx = x - 11.5;
+        const ly = y - 8;
+        if ((lx * lx) / 6 + (ly * ly) / 2.2 <= 1) return ly > 0 ? '#3a8f3a' : '#62c84f';
+        return null;
+      });
+      outlineInner(c);
+      const g = c.getContext('2d');
+      g.fillStyle = '#e0a868';
+      g.fillRect(6, 9, 1, 1);
+      g.fillRect(9, 6, 1, 1);
+    } else if (kind === 'pedra') {
+      c = paint16((x, y) => {
+        const dx = (x - 8) / 6.6;
+        const dy = (y - 9.5) / 5;
+        if (dx * dx + dy * dy > 1) return null;
+        if ((x - 5.5) ** 2 + (y - 7.5) ** 2 < 3) return '#e0e4ee';
+        return dx * 0.6 + dy * 0.8 > 0.35 ? '#6b7280' : '#a8b0c0';
+      });
+      outlineInner(c);
+      const g = c.getContext('2d');
+      g.fillStyle = '#4a505c';
+      [[9, 8], [10, 9], [10, 10], [11, 11]].forEach(([x, y]) => g.fillRect(x, y, 1, 1));
+    } else if (kind === 'semente') {
+      c = paint16((x, y) => {
+        const top = y < 8 ? 3.4 * ((y - 3) / 5) : 3.8;
+        const dx = (x - 8) / Math.max(0.5, top);
+        const dy = (y - 9.5) / 5.5;
+        if (y < 3 || dx * dx + (y >= 8 ? dy * dy : 0) > 1) return null;
+        if ((x - 6.8) ** 2 + (y - 8) ** 2 < 1.6) return '#fff3a0';
+        return x + y * 0.4 > 12 ? '#d68a00' : '#ffcc33';
+      });
+      outlineInner(c);
+      const g = c.getContext('2d');
+      g.fillStyle = '#ffffff';
+      [[13, 2], [13, 4], [12, 3], [14, 3]].forEach(([x, y]) => g.fillRect(x, y, 1, 1));
+    } else if (kind === 'toca') {
+      c = paint16((x, y) => {
+        const dx = (x - 8) / 7.6;
+        const dy = (y - 9) / 6.4;
+        const d = dx * dx + dy * dy;
+        if (d > 1) return null;
+        const hx = (x - 8) / 4.6;
+        const hy = (y - 9.6) / 3.4;
+        const h = hx * hx + hy * hy;
+        if (h <= 1) return y < 9 ? '#2a1a3a' : '#120a1e';
+        if (h <= 1.5) return '#5a3a24';
+        return dx * 0.5 + dy > 0.4 ? '#6a4024' : '#9a6a3a';
+      });
+      outlineInner(c);
+    }
+    cache.set(k, c);
+    return c;
+  }
+
   // bloco arredondado maior (cantos de 2 pixels), usado no corpo da cobra
   function blob(g, x, y, s, color) {
     g.fillStyle = color;
@@ -419,5 +502,5 @@
     return o.toDataURL();
   }
 
-  window.Cobra.pixel = { SPR, PAL, OUTLINE, sprite, big, apple, outlineInner, dataURL, canvasURL, greyCopy, block, blob, ring, rng };
+  window.Cobra.pixel = { SPR, PAL, OUTLINE, sprite, big, apple, resource, outlineInner, dataURL, canvasURL, greyCopy, block, blob, ring, rng };
 })();

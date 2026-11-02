@@ -51,12 +51,12 @@
 <body>
   <main class="app">
     <header class="hud">
-      <div class="pill"><span class="label">Terra</span><span id="phase" class="value">1/10</span></div>
+      <div class="pill"><span class="label" id="phaseLabel">Terra</span><span id="phase" class="value">1/10</span></div>
       <div class="pill goal">
         <div class="goal-top"><span class="label" id="goalLabel"><img data-apple-icon alt="" class="icon"> Meta</span><span id="goalText" class="value">0/5</span></div>
         <div class="bar"><div id="goalFill" class="fill"></div></div>
       </div>
-      <div class="pill"><span class="label">Pontos</span><span id="score" class="value">0</span></div>
+      <div class="pill"><span class="label" id="scoreLabel">Pontos</span><span id="score" class="value">0</span></div>
       <span id="shield" class="shield" title="Escudo do Dragão" hidden>🛡️</span>
       <button id="pauseBtn" class="icon-btn" type="button" aria-label="Pausar" data-silent="1">⏸</button>
       <button id="musicBtn" class="icon-btn" type="button" aria-label="Ligar ou desligar a música" data-silent="1">🎶</button>
@@ -67,6 +67,7 @@
       <canvas id="game" aria-label="Tabuleiro do jogo"></canvas>
       <div id="buffs" class="buffs"></div>
 
+      <div id="tip" class="tip"></div>
       <div id="readyHint" class="ready-hint">Escolha uma direção<span>setas, WASD ou deslize</span></div>
 
       <section id="intro" class="overlay soft">
@@ -87,6 +88,7 @@
       <section id="pause" class="overlay">
         <div class="card">
           <h2 class="title">Pausado</h2>
+          <p class="detail" id="pauseNote"></p>
           <div class="actions">
             <button class="btn" type="button" id="resume" style="--c:#4af0ff;--d:#0f9fb8">Continuar</button>
             <button class="btn" type="button" data-menu style="--c:#ffffff;--d:#b9a8d9">Menu</button>
@@ -134,6 +136,21 @@
         </div>
       </section>
 
+      <section id="result" class="overlay">
+        <div class="card">
+          <p class="kicker" id="resultKicker">Expedição</p>
+          <h2 class="title" id="resultTitle">Saque guardado!</h2>
+          <p class="detail" id="resultReason"></p>
+          <div class="loot" id="resultLoot"></div>
+          <p class="detail lost" id="resultLost"></p>
+          <div class="actions">
+            <button class="btn" type="button" id="resultAgain" style="--c:#6dff8a;--d:#25a548">Ir de novo</button>
+            <button class="btn" type="button" id="resultBase" style="--c:#ffd84a;--d:#d29a00">Escolher local</button>
+          </div>
+          <p class="keyhint">Espaço para ir de novo</p>
+        </div>
+      </section>
+
       <div id="toast" class="toast"></div>
     </div>
 
@@ -168,6 +185,7 @@
       <div class="phases" id="phases"></div>
 
       <button class="btn play" type="button" id="play" style="--c:#6dff8a;--d:#25a548">▶ Jogar</button>
+      <button class="btn play exped-btn" type="button" id="openExped" style="--c:#ffd84a;--d:#d29a00">🎒 Modo Expedições <small>novo</small></button>
 
       <div class="settings">
         <button class="mini" type="button" id="sfxToggle">Sons: ligados</button>
@@ -183,6 +201,25 @@
         <button class="link" type="button" id="importSave">Importar save</button>
       </p>
       <p class="save-line">Setas para navegar · Enter ou Espaço para escolher</p>
+    </div>
+  </section>
+
+  <section id="exped" class="menu" aria-label="Expedições">
+    <div class="menu-inner">
+      <h1 class="logo small">Expedições</h1>
+      <p class="subtitle">Reconstrua o Pomar Arco-Íris</p>
+
+      <div class="wallet">
+        <div class="wallet-top"><span>Seu estoque</span><b id="expRuns"></b></div>
+        <div class="loot" id="expInv"></div>
+        <p class="small">Em breve: vender, evoluir habilidades e reconstruir o pomar com o que você trouxer.</p>
+      </div>
+
+      <h2 class="section">Para onde ir?</h2>
+      <div class="locs" id="expLocs"></div>
+
+      <p class="save-line">Colete, volte para a toca onde começou e guarde o saque. À noite o Corvo ataca. Se cair, perde metade da mochila.</p>
+      <button class="btn" type="button" id="expBack" style="--c:#ffffff;--d:#b9a8d9">◀ Voltar ao menu</button>
     </div>
   </section>
 
